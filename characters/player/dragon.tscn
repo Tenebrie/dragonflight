@@ -1,0 +1,89 @@
+[gd_scene load_steps=5 format=3 uid="uid://m8665lqknwro"]
+
+[ext_resource type="PackedScene" uid="uid://q41yd0cm8fdm" path="res://assets/decimated_dragon1.glb" id="1_qbovm"]
+[ext_resource type="Script" path="res://characters/player/ik_controller_3d.gd" id="2_548jf"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wfqbv"]
+albedo_color = Color(1, 0, 1, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_7xt18"]
+material = SubResource("StandardMaterial3D_wfqbv")
+
+[node name="Dragon" instance=ExtResource("1_qbovm")]
+
+[node name="Skeleton3D" parent="Armature" index="0"]
+bones/0/scale = Vector3(1, 1, 1)
+bones/2/rotation = Quaternion(0.109342, 1.30048e-07, -1.82184e-08, 0.994004)
+bones/3/rotation = Quaternion(-0.618281, 9.36935e-08, -2.21115e-07, 0.785957)
+bones/4/rotation = Quaternion(0.555182, 1.70859e-14, 2.64731e-07, 0.831729)
+bones/4/scale = Vector3(1, 1, 1)
+bones/5/rotation = Quaternion(0.370303, -0.0025229, 0.0058505, 0.928889)
+bones/8/rotation = Quaternion(-0.201867, -1.66512e-09, 0.0347395, 0.978797)
+bones/8/scale = Vector3(1, 1, 1)
+bones/9/rotation = Quaternion(-0.510253, 0.109856, -0.659995, 0.540352)
+bones/9/scale = Vector3(1, 1, 1)
+bones/10/rotation = Quaternion(0.070483, -0.0537244, 0.533721, 0.841004)
+bones/11/rotation = Quaternion(-0.237742, -0.00787759, -0.458799, 0.856107)
+bones/12/rotation = Quaternion(-0.267359, 0.0022085, -0.68477, 0.677942)
+bones/12/scale = Vector3(1, 1, 1)
+bones/13/rotation = Quaternion(-0.265347, 0, -0.785686, 0.558828)
+bones/13/scale = Vector3(1, 1, 1)
+bones/14/rotation = Quaternion(0.18651, -0.000861379, 0.917968, -0.350069)
+bones/14/scale = Vector3(1, 1, 1)
+bones/15/rotation = Quaternion(-0.212349, -1.08287e-07, -0.618139, 0.756844)
+bones/15/scale = Vector3(1, 1, 1)
+bones/16/rotation = Quaternion(0.462622, 0.195589, 0.689692, 0.521585)
+bones/16/scale = Vector3(1, 1, 1)
+bones/17/rotation = Quaternion(-0.0769248, -0.163974, -0.737146, 0.651007)
+bones/17/scale = Vector3(1, 1, 1)
+bones/18/rotation = Quaternion(-0.201867, -6.99351e-08, -0.0347395, 0.978797)
+bones/18/scale = Vector3(1, 1, 1)
+bones/19/rotation = Quaternion(-0.510253, -0.109856, 0.659995, 0.540352)
+bones/19/scale = Vector3(1, 1, 1)
+bones/20/rotation = Quaternion(0.070483, 0.0537246, -0.533721, 0.841004)
+bones/20/scale = Vector3(1, 1, 1)
+bones/21/scale = Vector3(1, 1, 1)
+bones/22/rotation = Quaternion(-0.267359, -0.00220867, 0.68477, 0.677941)
+bones/22/scale = Vector3(1, 1, 1)
+bones/23/rotation = Quaternion(-0.265347, -1.33325e-07, 0.785686, 0.558828)
+bones/23/scale = Vector3(1, 1, 1)
+bones/24/rotation = Quaternion(-0.186509, -0.000861489, 0.917968, 0.350068)
+bones/24/scale = Vector3(1, 1, 1)
+bones/25/rotation = Quaternion(-0.212348, 1.08287e-07, 0.618138, 0.756844)
+bones/25/scale = Vector3(1, 1, 1)
+bones/27/rotation = Quaternion(0.327771, 1.206e-07, 1.63945e-07, 0.944757)
+bones/28/rotation = Quaternion(0.25976, 2.30234e-07, 2.25017e-07, 0.965673)
+bones/29/rotation = Quaternion(0.283097, 1.85212e-14, 3.12729e-07, 0.959091)
+bones/29/scale = Vector3(1, 1, 1)
+bones/30/rotation = Quaternion(0.236167, 3.65614e-14, 2.60887e-07, 0.971712)
+bones/30/scale = Vector3(1, 1, 1)
+bones/31/rotation = Quaternion(0.196595, 7.24685e-15, 2.17173e-07, 0.980485)
+bones/32/scale = Vector3(1, 1, 1)
+bones/33/rotation = Quaternion(-0.0714833, -4.02614e-07, -0.294305, 0.953035)
+bones/33/scale = Vector3(1, 1, 1)
+bones/34/rotation = Quaternion(-0.771931, 0.0319619, -0.120574, 0.623348)
+bones/34/scale = Vector3(1, 1, 1)
+bones/35/rotation = Quaternion(0.744666, -0.0513336, 0.0371964, 0.66442)
+bones/35/scale = Vector3(1, 1, 1)
+bones/36/rotation = Quaternion(0.774312, 0.314715, -0.498252, 0.230521)
+bones/36/scale = Vector3(1, 1, 1)
+bones/37/rotation = Quaternion(-0.0714833, 1.64173e-07, 0.294304, 0.953035)
+bones/38/rotation = Quaternion(-0.771931, -0.0319619, 0.120574, 0.623348)
+bones/38/scale = Vector3(1, 1, 1)
+bones/39/rotation = Quaternion(0.744666, 0.0513335, -0.0371964, 0.66442)
+bones/39/scale = Vector3(1, 1, 1)
+
+[node name="IKController3D" type="BoneAttachment3D" parent="Armature/Skeleton3D" index="1" node_paths=PackedStringArray("target", "skeleton")]
+transform = Transform3D(-1, -1.56452e-07, -1.07175e-06, -4.11485e-07, 0.970199, 0.24231, 1.0019e-06, 0.24231, -0.970199, -2.32829e-07, -1.43786, 8.44949)
+bone_name = "Tail.006"
+bone_idx = 31
+script = ExtResource("2_548jf")
+target = NodePath("../Tip")
+skeleton = NodePath("..")
+enable_preview = true
+metadata/_edit_group_ = true
+
+[node name="Tip" type="MeshInstance3D" parent="Armature/Skeleton3D" index="2"]
+transform = Transform3D(-1, -1.32835e-07, -1.10971e-06, -4.1183e-07, 0.970198, 0.24231, 1.01476e-06, 0.24231, -0.970198, 0.0021612, 0.876599, 8.88378)
+mesh = SubResource("SphereMesh_7xt18")
+skeleton = NodePath("../IKController3D")
