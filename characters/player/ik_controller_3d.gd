@@ -32,11 +32,11 @@ func _physics_process(_delta: float) -> void:
 
 	myvar += _delta / 10
 
-	var depth = 6
+	var depth = 14
 	var bones = []
 	var current_bone = bone_idx
 
-	var orr = skeleton.get_bone_global_pose(bone_idx).origin
+	# var orr = skeleton.get_bone_global_pose(bone_idx).origin
 	# var target_position = lerp(orr, target.position, 0.5 * _delta)
 	var target_position = target.position
 	var current_to = target_position
@@ -61,6 +61,9 @@ func _physics_process(_delta: float) -> void:
 		current_bone = parent
 		current_to = from
 
+	var root_up = - skeleton.get_bone_global_rest(bones[depth - 1]["idx"]).basis.z
+	var root_forward = skeleton.get_bone_global_rest(bones[depth - 1]["idx"]).basis.y
+
 	var source_pos = bones[depth - 1]["from"]
 	var target_pos = target_position
 
@@ -74,8 +77,8 @@ func _physics_process(_delta: float) -> void:
 		target_pos = bone["from"]
 
 	# Phase 2
-	var up_vector = Vector3(0, 0, -1)
-	var forward_vector = Vector3(0, -1, 0)
+	var up_vector = root_up
+	var forward_vector = root_forward
 	for i in range(depth):
 		var bone = bones[depth - i - 1]
 		bone["from"] = source_pos
@@ -87,14 +90,16 @@ func _physics_process(_delta: float) -> void:
 		var pitch = atan2(desired_direction.z, desired_direction.y) # angle in forward/up plane
 		var roll = atan2(desired_direction.x, desired_direction.z) # angle in up/normal plane
 
-		yaw = angle_clampf(yaw, 0.1)
-		pitch = angle_clampf(pitch, pow(i, 2) * 0.1)
+		yaw = angle_clampf(yaw, PI / 3)
+		pitch = angle_clampf(pitch, PI / 3)
+		roll = angle_clampf(roll, 0)
 
 		# var pole_vector = Vector3.ZERO
 		# if pole_target:
 			# pole_vector = (pole_target.global_position - bone["from"]).normalized()
 
 		var mybasis = Basis().rotated(up_vector, PI - yaw).rotated(normal, PI - pitch).rotated(forward_vector, PI - roll)
+		# var mybasis = Basis().rotated(up_vector, PI - yaw)
 
 		# if pole_target:
 			# var pole_angle = desired_direction.angle_to(pole_vector)
@@ -110,8 +115,9 @@ func _physics_process(_delta: float) -> void:
 
 		bone["to"] = bone["from"] + desired_direction * bone["length"]
 
-		# forward_vector = forward_vector.rotated(normal, -PI + pitch)
-		up_vector = up_vector.rotated(normal, PI - pitch)
+		# Don't touch, I guess?
+		# forward_vector = forward_vector.rotated(normal, PI - pitch)
+		# up_vector = up_vector.rotated(normal, PI - pitch)
 
 		source_pos = bone["to"]
 
