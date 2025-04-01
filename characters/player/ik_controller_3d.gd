@@ -56,7 +56,8 @@ func _physics_process(_delta: float) -> void:
 			"pitch": 0.0,
 			"yaw": 0.0,
 			"roll": 0.0,
-			"stiffness": 0.02
+			"stiffness": 0.0,
+			"rest_basis": skeleton.get_bone_global_pose(parent).basis
 		})
 		current_bone = parent
 		current_to = from
@@ -104,7 +105,7 @@ func fabrik_phase1(depth: int):
 		bone["to"] = target_pos
 		var desired_direction: Vector3 = (bone["to"] - bone["from"]).normalized()
 
-		var constrained = apply_rotation_constraints(up_vector, forward_vector, desired_direction)
+		var constrained = apply_rotation_constraints(bone["rest_basis"], up_vector, forward_vector, desired_direction)
 		desired_direction = constrained["direction"]
 		bone["pitch"] = constrained["pitch"]
 		bone["roll"] = constrained["roll"]
@@ -125,7 +126,7 @@ func fabrik_phase2(depth: int):
 		bone["from"] = source_pos
 		var desired_direction: Vector3 = (bone["to"] - bone["from"]).normalized()
 
-		var constrained = apply_rotation_constraints(up_vector, forward_vector, desired_direction)
+		var constrained = apply_rotation_constraints(bone["rest_basis"], up_vector, forward_vector, desired_direction)
 		desired_direction = constrained["direction"]
 		bone["pitch"] = constrained["pitch"]
 		bone["roll"] = constrained["roll"]
@@ -135,16 +136,45 @@ func fabrik_phase2(depth: int):
 
 		source_pos = bone["to"]
 
-func apply_rotation_constraints(up_vector: Vector3, forward_vector: Vector3, desired_direction: Vector3):
+func apply_rotation_constraints(rest_basis: Basis, up_vector: Vector3, forward_vector: Vector3, desired_direction: Vector3):
 	var normal = forward_vector.cross(up_vector).normalized()
 
 	var yaw = atan2(desired_direction.x, desired_direction.y) # angle in forward/normal plane
 	var pitch = atan2(desired_direction.z, desired_direction.y) # angle in forward/up plane
 	var roll = atan2(desired_direction.x, desired_direction.z) # angle in up/normal plane
 
-	yaw = angle_clampf(yaw, PI / 2)
-	pitch = angle_clampf(pitch, PI / 2)
-	roll = angle_clampf(roll, PI / 2)
+	var rest_forward = rest_basis.y
+
+	var rest_yaw = atan2(rest_forward.x, rest_forward.y) # angle in forward/normal plane
+	var rest_pitch = atan2(rest_forward.z, rest_forward.y) # angle in forward/up plane
+	var rest_roll = atan2(desired_direction.x, desired_direction.z) # angle in up/normal plane
+
+	var yaw_diff = rest_yaw - yaw
+	if yaw_diff >= PI:
+		yaw_diff = -2 * PI + yaw_diff
+	elif yaw_diff <= -PI:
+		yaw_diff = 2 * PI + yaw_diff
+
+	var pitch_diff = rest_pitch - pitch
+	if pitch_diff >= PI:
+		pitch_diff = -2 * PI + pitch_diff
+	elif pitch_diff <= -PI:
+		pitch_diff = 2 * PI + pitch_diff
+
+	var roll_diff = rest_roll - roll
+	if roll_diff >= PI:
+		roll_diff = -2 * PI + roll_diff
+	elif roll_diff <= -PI:
+		roll_diff = 2 * PI + roll_diff
+
+	var limit = PI / 16
+	yaw_diff = clampf(yaw_diff, -limit, limit)
+	pitch_diff = clampf(pitch_diff, -limit, limit)
+	roll_diff = clampf(roll_diff, -limit, limit)
+
+	yaw = rest_yaw - yaw_diff
+	pitch = rest_pitch - pitch_diff
+	roll = rest_roll - roll_diff
 
 	var mybasis = Basis().rotated(up_vector, PI - yaw).rotated(normal, PI - pitch).rotated(forward_vector, PI - roll)
 	return {
