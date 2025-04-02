@@ -23,7 +23,7 @@ var bones = []
 
 var root_up: Vector3
 var root_forward: Vector3
-var bias_vector: Vector3
+var gravity_vector: Vector3
 
 func _physics_process(_delta: float) -> void:
 	if not preview:
@@ -48,9 +48,8 @@ func _physics_process(_delta: float) -> void:
 		var to = current_to
 		# If it's the first bone, length is not relevant
 		var length = 1.0 if bones.is_empty() else skeleton.get_bone_global_rest(current_bone).origin.distance_to(skeleton.get_bone_global_rest(parent).origin)
-		var rest_basis = skeleton.get_bone_global_pose(parent).basis
-		if i == depth - 1:
-			rest_basis = Basis().rotated(Vector3.FORWARD, PI)
+		var parent_basis = skeleton.get_bone_global_pose(parent).basis
+		var rest_basis = skeleton.get_bone_global_rest(current_bone).basis
 		bones.append({
 			"idx": current_bone,
 			"parent_idx": parent,
@@ -60,9 +59,13 @@ func _physics_process(_delta: float) -> void:
 			"pitch": 0.0,
 			"yaw": 0.0,
 			"roll": 0.0,
+			"gravity": 0.0,
 			"stiffness": 0.0,
+			# "gravity": 0.05 + 0.05 * i,
+			# "stiffness": 0.3 + 0.05 * i,
 			"self_basis": self_basis,
-			"rest_basis": rest_basis 
+			"parent_basis": parent_basis,
+			"rest_basis": rest_basis
 		})
 		current_bone = parent
 		current_to = from
@@ -71,7 +74,7 @@ func _physics_process(_delta: float) -> void:
 	root_forward = Vector3(0, -1, 0)
 	# root_up = -skeleton.get_bone_global_rest(bones[depth - 1]["idx"]).basis.z
 	# root_forward = skeleton.get_bone_global_rest(bones[depth - 1]["idx"]).basis.y
-	bias_vector = - root_up
+	gravity_vector = Vector3.DOWN
 
 	fabrik_phase1(depth)
 	fabrik_phase2(depth)
@@ -79,132 +82,89 @@ func _physics_process(_delta: float) -> void:
 	# Apply
 	bones.reverse()
 
-	# Bake in rotations
-	var pitch_acc = PI
-	var yaw_acc = 0.0
-	var roll_acc = PI
 	for i in range(depth):
 		var bone = bones[i]
-		pitch_acc = bone["pitch"] + PI
-		yaw_acc = bone["yaw"]
-		roll_acc = bone["roll"] + PI
-		bone["pitch"] = pitch_acc
-		bone["yaw"] = yaw_acc
-		bone["roll"] = roll_acc
-
-	for i in range(depth):
-		var bone = bones[i]
+		var parent_transform: Transform3D = skeleton.get_bone_global_pose(bone["parent_idx"])
 		var new_transform: Transform3D = skeleton.get_bone_global_pose(bone["idx"])
 		new_transform.origin = bone["from"]
-		new_transform.basis = Basis().rotated(Vector3.RIGHT, bone["pitch"]).rotated(Vector3.FORWARD, bone["yaw"]).rotated(Vector3.UP, bone["roll"])
+
+		var dir = (bone["to"] - bone["from"]).normalized()
+		# var prev_bone_basis = skeleton.get_bone_global_pose(bone["parent_idx"]).basis
+
+		var ee = Basis.looking_at(dir, parent_transform.basis.z)
+		new_transform.basis = Basis(ee.x.normalized(), -ee.z.normalized(), ee.y.normalized())
 
 		skeleton.set_bone_global_pose(bone["idx"], new_transform)
 
 func fabrik_phase1(depth: int):
-	var up_vector = root_up
 	var target_pos = target.position
-	var forward_vector: Vector3 = (target_pos - bones[0]["from"]).normalized()
 
 	for i in range(depth):
 		var bone = bones[i]
 		bone["to"] = target_pos
-		var desired_direction: Vector3 = -(bone["to"] - bone["from"]).normalized()
 
-		# var constrained = apply_rotation_constraints(depth - i - 1, bone["self_basis"], bone["rest_basis"], up_vector, forward_vector, desired_direction, 0)
-		# desired_direction = constrained["direction"]
-		# bone["pitch"] = constrained["pitch"]
-		# bone["roll"] = constrained["roll"]
-		# bone["yaw"] = constrained["yaw"]
+		bone["from"] = apply_bias(bone["to"], bone["from"], bone["length"], bone["parent_basis"].y, bone["stiffness"])
+		bone["from"] = apply_bias(bone["to"], bone["from"], bone["length"], gravity_vector, bone["gravity"])
 
-		bone["from"] = apply_bias(bone["to"], desired_direction, bone["length"], bone["stiffness"])
-		
 		target_pos = bone["from"]
 
 func fabrik_phase2(depth: int):
-	var up_vector = root_up
-	var forward_vector = root_forward
-
 	var source_pos = skeleton.get_bone_global_rest(bones[depth - 1]["idx"]).origin
 
 	for i in range(depth):
 		var bone = bones[depth - i - 1]
 		bone["from"] = source_pos
-		var desired_direction: Vector3 = (bone["to"] - bone["from"]).normalized()
 
-		# var constrained = apply_rotation_constraints(i, bone["self_basis"], bone["rest_basis"], up_vector, forward_vector, desired_direction, 1)
-		# desired_direction = constrained["direction"]
-		# bone["pitch"] = constrained["pitch"]
-		# bone["roll"] = constrained["roll"]
-		# bone["yaw"] = constrained["yaw"]
-
-		bone["to"] = apply_bias(bone["from"], desired_direction, bone["length"], bone["stiffness"])
+		bone["to"] = apply_bias(bone["from"], bone["to"], bone["length"], bone["parent_basis"].y, bone["stiffness"])
+		bone["to"] = apply_bias(bone["from"], bone["to"], bone["length"], gravity_vector, bone["gravity"])
 
 		source_pos = bone["to"]
 
-func apply_rotation_constraints(index_from_root: int, self_basis: Basis, rest_basis: Basis, up_vector: Vector3, forward_vector: Vector3, desired_direction: Vector3, pass_index: int):
-	up_vector = -self_basis.z
-	forward_vector = self_basis.y
+# func apply_rot_constraints():
+# 		# Rotation limit in every axis (yaw, pitch, roll)
+# 	var limit = PI / 4
 
-	var normal = forward_vector.cross(up_vector).normalized()
+# 	# Get the rest direction (forward vector in rest pose)
+# 	var rest_direction = rest_basis.y
 
-	var yaw = atan2(desired_direction.x, desired_direction.y) # angle in forward/normal plane
-	var pitch = atan2(desired_direction.z, desired_direction.y) # angle in forward/up plane
-	var roll = atan2(desired_direction.x, desired_direction.z) # angle in up/normal plane
+# 	# Calculate the angle between desired and rest direction
+# 	var angle = rest_direction.angle_to(desired_direction)
 
-	var rest_forward = rest_basis.y
+# 	# If we're within the limit, return the desired direction
+# 	if angle <= limit:
+# 		return {
+# 			"direction": desired_direction,
+# 			"pitch": 0,
+# 			"roll": 0,
+# 			"yaw": 0,
+# 		}
 
-	var rest_yaw = atan2(rest_forward.x, rest_forward.y) # angle in forward/normal plane
-	var rest_pitch = atan2(rest_forward.z, rest_forward.y) # angle in forward/up plane
-	var rest_roll = atan2(rest_forward.x, rest_forward.z) # angle in up/normal plane
+# 	# Calculate the rotation axis (cross product of rest and desired direction)
+# 	var rotation_axis = rest_direction.cross(desired_direction).normalized()
 
-	var yaw_diff = rest_yaw - yaw
-	if yaw_diff >= PI:
-		yaw_diff = -2 * PI + yaw_diff
-	elif yaw_diff <= -PI:
-		yaw_diff = 2 * PI + yaw_diff
+# 	# Create a basis that rotates from rest_direction to desired_direction
+# 	var rotation_basis = Basis(rotation_axis, limit)
+	
+# 	# Apply the limited rotation to the rest direction
+# 	var constrained_direction = rotation_basis * rest_direction
 
-	var pitch_diff = rest_pitch - pitch
-	if pitch_diff >= PI:
-		pitch_diff = -2 * PI + pitch_diff
-	elif pitch_diff <= -PI:
-		pitch_diff = 2 * PI + pitch_diff
+# 	# Calculate the actual angles for debugging/visualization
+# 	var constrained_basis = Basis(rest_direction, constrained_direction)
+# 	var euler = constrained_basis.get_euler()
+	
+# 	return {
+# 		"direction": constrained_direction,
+# 		"pitch": euler.x,
+# 		"roll": euler.z,
+# 		"yaw": euler.y,
+	# }
 
-	var roll_diff = rest_roll - roll
-	if roll_diff >= PI:
-		roll_diff = -2 * PI + roll_diff
-	elif roll_diff <= -PI:
-		roll_diff = 2 * PI + roll_diff
-
-	var limit = 2
-	yaw_diff = clampf(yaw_diff, -limit, limit)
-	pitch_diff = clampf(pitch_diff, -limit, limit)
-	roll_diff = clampf(roll_diff, -limit, limit)
-
-	# yaw = rest_yaw - yaw_diff
-	pitch = rest_pitch - pitch_diff
-	roll = rest_roll - roll_diff
-
-	# var mybasis = Basis().rotated(up_vector, PI - yaw).rotated(normal, PI - pitch).rotated(forward_vector, PI - roll)
-	var mybasis = Basis().rotated(Vector3.BACK, yaw_diff)
-	return {
-		direction = (forward_vector * mybasis).normalized(),
-		pitch = 0,
-		roll = 0,
-		yaw = -0,
-	}
-
-func apply_bias(original_from: Vector3, desired_direction: Vector3, length: float, stiffness: float) -> Vector3:
+func apply_bias(original_from: Vector3, original_to: Vector3, length: float, bias_to: Vector3, stiffness: float) -> Vector3:
+	var desired_direction = (original_to - original_from).normalized()
 	var desired_to = original_from + desired_direction * length
 
-	var biased_to = (original_from + bias_vector * length)
+	var biased_to = (original_from + bias_to * length)
 	var biased_position = (1 - stiffness) * desired_to + stiffness * biased_to
 	var biased_direction = (biased_position - original_from).normalized()
 
 	return original_from + biased_direction * length
-
-func angle_clampf(value: float, limit: float) -> float:
-	# TODO: It only works for reversed angles now, fix pls
-	if value > 0:
-		return maxf(value, PI - limit)
-	else:
-		return minf(value, -PI + limit)
