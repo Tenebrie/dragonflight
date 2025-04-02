@@ -31,7 +31,7 @@ func _physics_process(_delta: float) -> void:
 	if not target or not target.is_inside_tree():
 		return
 
-	var depth = 13
+	var depth = 3
 	bones = []
 	var current_bone = bone_idx
 
@@ -63,6 +63,8 @@ func _physics_process(_delta: float) -> void:
 			"stiffness": 0.0,
 			# "gravity": 0.05 + 0.05 * i,
 			# "stiffness": 0.3 + 0.05 * i,
+			# "gravity": -1,
+			# "stiffness": 0.2 + 0.4 * i,
 			"self_basis": self_basis,
 			"parent_basis": parent_basis,
 			"rest_basis": rest_basis
