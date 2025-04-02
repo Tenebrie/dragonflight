@@ -35,7 +35,7 @@ func _physics_process(_delta: float) -> void:
 
 	myvar += _delta
 
-	var depth = 1
+	var depth = 13
 	bones = []
 	var current_bone = bone_idx
 
@@ -63,10 +63,10 @@ func _physics_process(_delta: float) -> void:
 			"pitch": 0.0,
 			"yaw": 0.0,
 			"roll": 0.0,
-			"gravity": 0.0,
-			"stiffness": 0.0,
-			# "gravity": 0.05 + 0.05 * i,
-			# "stiffness": 0.3 + 0.05 * i,
+			# "gravity": 0.0,
+			# "stiffness": 0.0,
+			"gravity": 0.01 + 0.01 * i,
+			"stiffness": 0.3 + 0.01 * i,
 			# "gravity": -1,
 			# "stiffness": 0.2 + 0.4 * i,
 			"self_basis": self_basis,
@@ -96,17 +96,14 @@ func _physics_process(_delta: float) -> void:
 
 		var forward: Vector3 = (bone["to"] - bone["from"]).normalized()
 
-		var parent_basis = parent_transform.basis
-
-		# var ref_up = parent_basis.z
-		# var deviation = parent_basis.y.angle_to(forward) * sign(forward.dot(parent_basis.z))
-
 		var old_up = new_transform.basis.z.rotated(forward, -PI / 2)
 		var preferred_up = (old_up - forward * old_up.dot(forward)).normalized()
 
-		var twist = get_roll_difference(parent_transform, new_transform)
+		var twist = get_roll_difference(new_transform, parent_transform)
 
-		print(twist)
+		var untwisted_up = preferred_up.rotated(forward, twist)
+
+		preferred_up = preferred_up.lerp(untwisted_up, 1)
 	
 		var up = forward.cross(preferred_up).normalized()
 		var normal = forward.cross(up).normalized()
@@ -206,8 +203,8 @@ func get_roll_difference(transform1: Transform3D, transform2: Transform3D) -> fl
 	var forward = transform1.basis.y.normalized()
 
 	# Get the up vectors from each transform
-	var up1 = transform1.basis.z
-	var up2 = transform2.basis.z
+	var up1 = transform1.basis.x
+	var up2 = transform2.basis.x
 
 	# Project up vectors onto plane perpendicular to 'forward'
 	up1 = (up1 - forward * up1.dot(forward)).normalized()
@@ -222,5 +219,3 @@ func get_roll_difference(transform1: Transform3D, transform2: Transform3D) -> fl
 		angle = -angle
 
 	return angle
-
-	# 'angle' is the roll difference (in radians)
