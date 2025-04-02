@@ -1,89 +1,118 @@
 @tool
 
 extends BoneAttachment3D
+class_name IKBoneController3D
+## Fabrik-based inverse kinematics for 3D bones
 
 @export var target: Node3D
-@export var skeleton: Skeleton3D
-@export var pole_target: Node3D
+@export_range(1, 100) var depth: int = 1
 
-var initial_rotation: Vector3
+var enabled: bool = true
+@export var simulation_enabled: bool:
+	get:
+		return enabled
+	set(value):
+		skeleton = get_parent()
+		enabled = value
+		if skeleton:
+			skeleton.reset_bone_poses()
 
 var preview: bool = false
-@export var enable_preview: bool:
+@export var editor_preview: bool:
 	get:
 		return preview
 	set(value):
+		skeleton = get_parent()
 		preview = value
+		if skeleton:
+			skeleton.reset_bone_poses()
 
+@export_subgroup("Root")
+@export_range(0, 1) var root_stiffness: float = 0.2
+@export_range(-1, 1) var root_pitch: float = 0.0
+@export_range(-1, 1) var root_yaw: float = 0.0
+@export_range(-1, 1) var root_roll: float = 0.0
 
-func _ready() -> void:
-	initial_rotation = rotation_degrees
+@export_subgroup("Bones")
+@export_range(0, 1) var gravity: float = 0.0
+@export_range(0, 0.2) var bone_weight: float = 0.0
 
-var bones = []
+@export_range(0, 1) var stiffness: float = 0.0
+@export_range(0, 0.2) var stiffness_per_bone: float = 0.0
 
-var root_up: Vector3
-var root_forward: Vector3
+@export_range(0, 1) var rotational_stiffness: float = 0.0
+
+var skeleton: Skeleton3D
+var bones: Array[Dictionary] = []
+
 var gravity_vector: Vector3
 
-var myvar = 0
+func _ready() -> void:
+	print(simulation_enabled)
+	skeleton = get_parent()
 
 func _physics_process(_delta: float) -> void:
-	if not preview:
+	if not enabled:
+		return
+	if not preview and Engine.is_editor_hint():
 		return
 	if not target or not target.is_inside_tree():
 		return
+	if not skeleton:
+		return
+	if bone_idx == -1:
+		return
+	if depth == 0:
+		return
 
-	myvar += _delta
-
-	var depth = 13
 	bones = []
 	var current_bone = bone_idx
 
-	# var orr = skeleton.get_bone_global_pose(bone_idx).origin
-	# var target_position = lerp(orr, target.position, 0.5 * _delta)
-	var target_position = target.position
-	var current_to = target_position
+	var current_to = target.position
 
+	# TODO: No need to recalculate everything every frame
 	for i in range(depth):
 		var parent = skeleton.get_bone_parent(current_bone)
+		if parent == -1:
+			push_warning("[IKBoneController3D] Bone '%s' (depth = %d) has no parent. Depth too high?" % [skeleton.get_bone_name(current_bone), i])
+			return
 		
-		var self_basis = skeleton.get_bone_global_pose(current_bone).basis
 		var from = skeleton.get_bone_global_pose(current_bone).origin
 		var to = current_to
-		# If it's the first bone, length is not relevant
-		var length = 1.0 if bones.is_empty() else skeleton.get_bone_global_rest(current_bone).origin.distance_to(skeleton.get_bone_global_rest(parent).origin)
+		# If it's the first bone, length is not available
+		var length = 0.1 if bones.is_empty() else to.distance_to(from)
 		var parent_basis = skeleton.get_bone_global_pose(parent).basis
 		var rest_basis = skeleton.get_bone_global_rest(current_bone).basis
-		bones.append({
+
+		if i == depth - 1:
+			parent_basis = parent_basis.rotated(parent_basis.z, root_yaw * PI).rotated(parent_basis.x, -root_pitch * PI)
+
+		var bone = {
 			"idx": current_bone,
 			"parent_idx": parent,
 			"from": from,
 			"to": to,
 			"length": length,
-			"pitch": 0.0,
-			"yaw": 0.0,
-			"roll": 0.0,
-			# "gravity": 0.0,
-			# "stiffness": 0.0,
-			"gravity": 0.01 + 0.01 * i,
-			"stiffness": 0.3 + 0.01 * i,
+			"gravity": clamp(gravity + bone_weight * i, 0, 1),
+			"stiffness": clamp(stiffness + stiffness_per_bone * i, 0, 1),
 			# "gravity": -1,
 			# "stiffness": 0.2 + 0.4 * i,
-			"self_basis": self_basis,
 			"parent_basis": parent_basis,
 			"rest_basis": rest_basis
-		})
+		}
+
+		if i == depth - 1:
+			bone["stiffness"] = root_stiffness
+
+		bones.append(bone)
 		current_bone = parent
 		current_to = from
 
-	root_up = Vector3(0, 0, -1)
-	root_forward = Vector3(0, -1, 0)
-	# root_up = -skeleton.get_bone_global_rest(bones[depth - 1]["idx"]).basis.z
-	# root_forward = skeleton.get_bone_global_rest(bones[depth - 1]["idx"]).basis.y
-	gravity_vector = Vector3.DOWN
+	# TODO: Make this global down, not skeleton down
+	gravity_vector = Vector3.DOWN * skeleton.global_transform.inverse()
 
-	fabrik_phase1(depth)
-	fabrik_phase2(depth)
+	fabrik_phase1()
+	fabrik_phase2()
 
 	# Apply
 	bones.reverse()
@@ -94,25 +123,29 @@ func _physics_process(_delta: float) -> void:
 		var new_transform: Transform3D = skeleton.get_bone_global_pose(bone["idx"])
 		new_transform.origin = bone["from"]
 
+		if i == 0:
+			parent_transform = parent_transform.rotated(parent_transform.basis.y, root_roll * PI)
+
 		var forward: Vector3 = (bone["to"] - bone["from"]).normalized()
 
 		var old_up = new_transform.basis.z.rotated(forward, -PI / 2)
 		var preferred_up = (old_up - forward * old_up.dot(forward)).normalized()
+		# var preferred_up = old_up
 
 		var twist = get_roll_difference(new_transform, parent_transform)
 
 		var untwisted_up = preferred_up.rotated(forward, twist)
-
 		preferred_up = preferred_up.lerp(untwisted_up, 1)
+
+		preferred_up = old_up.lerp(preferred_up, 1 - rotational_stiffness)
 	
 		var up = forward.cross(preferred_up).normalized()
 		var normal = forward.cross(up).normalized()
 		
 		new_transform.basis = Basis(normal, forward, up).orthonormalized()
-
 		skeleton.set_bone_global_pose(bone["idx"], new_transform)
 
-func fabrik_phase1(depth: int):
+func fabrik_phase1():
 	var target_pos = target.position
 
 	for i in range(depth):
@@ -120,11 +153,11 @@ func fabrik_phase1(depth: int):
 		bone["to"] = target_pos
 
 		bone["from"] = apply_bias(bone["to"], bone["from"], bone["length"], bone["parent_basis"].y, bone["stiffness"])
-		bone["from"] = apply_bias(bone["to"], bone["from"], bone["length"], gravity_vector, bone["gravity"])
+		bone["from"] = apply_bias(bone["to"], bone["from"], bone["length"], -gravity_vector, bone["gravity"])
 
 		target_pos = bone["from"]
 
-func fabrik_phase2(depth: int):
+func fabrik_phase2():
 	var source_pos = skeleton.get_bone_global_rest(bones[depth - 1]["idx"]).origin
 
 	for i in range(depth):
@@ -132,7 +165,7 @@ func fabrik_phase2(depth: int):
 		bone["from"] = source_pos
 
 		bone["to"] = apply_bias(bone["from"], bone["to"], bone["length"], bone["parent_basis"].y, bone["stiffness"])
-		bone["to"] = apply_bias(bone["from"], bone["to"], bone["length"], gravity_vector, bone["gravity"])
+		bone["to"] = apply_bias(bone["from"], bone["to"], bone["length"], -gravity_vector, bone["gravity"])
 
 		source_pos = bone["to"]
 
@@ -175,30 +208,22 @@ func fabrik_phase2(depth: int):
 # 		"yaw": euler.y,
 	# }
 
-func apply_bias(original_from: Vector3, original_to: Vector3, length: float, bias_to: Vector3, stiffness: float) -> Vector3:
+func apply_bias(original_from: Vector3, original_to: Vector3, length: float, bias_to: Vector3, influence: float) -> Vector3:
 	var desired_direction = (original_to - original_from).normalized()
 	var desired_to = original_from + desired_direction * length
 
 	var biased_to = (original_from + bias_to * length)
-	var biased_position = (1 - stiffness) * desired_to + stiffness * biased_to
+	var biased_position = (1 - influence) * desired_to + influence * biased_to
 	var biased_direction = (biased_position - original_from).normalized()
 
 	return original_from + biased_direction * length
-
-# Extracts the twist component from a quaternion along a given twist_axis.
-func extract_twist(q: Quaternion, twist_axis: Vector3) -> Quaternion:
-	var r: Vector3 = Vector3(q.x, q.y, q.z)
-	var proj: Vector3 = twist_axis * r.dot(twist_axis)
-	var twist_q: Quaternion = Quaternion(proj.x, proj.y, proj.z, q.w)
-	return twist_q.normalized()
 
 # Returns the roll difference (in radians) between transform1 and transform2,
 # measured around the provided twist_axis.
 func get_roll_difference(transform1: Transform3D, transform2: Transform3D) -> float:
 	# Assume transform1 and transform2 are your transforms
 	# and that their basis have the axes:
-	# forward: Y, up: Z
-
+	# forward: Y, up: X
 	# Choose the forward axis from transform1
 	var forward = transform1.basis.y.normalized()
 
@@ -216,6 +241,6 @@ func get_roll_difference(transform1: Transform3D, transform2: Transform3D) -> fl
 
 	# Determine the sign using the cross product
 	if forward.dot(up1.cross(up2)) < 0:
-		angle = -angle
+		angle = - angle
 
 	return angle

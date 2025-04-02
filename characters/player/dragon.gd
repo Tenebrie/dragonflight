@@ -74,6 +74,7 @@ var poses = {
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	skeleton = $Armature/Skeleton3D
+	return
 	
 	# Introduce some noise into poses
 	for pose in poses.keys():
@@ -143,6 +144,12 @@ func lerp_angle_degrees(a: float, b: float, t: float) -> float:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
+	var wing_target: Node3D = $Armature/Skeleton3D/LeftWingBaseTarget
+	if wing_target != null:
+		wing_target.translate(Vector3(-3, 0, 0) * delta)
+		return
+
+	return
 	#Increment flap_state by delta
 	# flap_state += delta / 10
 	# print(flap_state)
