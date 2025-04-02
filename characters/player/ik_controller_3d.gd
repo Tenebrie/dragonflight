@@ -25,13 +25,17 @@ var root_up: Vector3
 var root_forward: Vector3
 var gravity_vector: Vector3
 
+var myvar = 0
+
 func _physics_process(_delta: float) -> void:
 	if not preview:
 		return
 	if not target or not target.is_inside_tree():
 		return
 
-	var depth = 3
+	myvar += _delta
+
+	var depth = 1
 	bones = []
 	var current_bone = bone_idx
 
@@ -90,11 +94,24 @@ func _physics_process(_delta: float) -> void:
 		var new_transform: Transform3D = skeleton.get_bone_global_pose(bone["idx"])
 		new_transform.origin = bone["from"]
 
-		var dir = (bone["to"] - bone["from"]).normalized()
-		# var prev_bone_basis = skeleton.get_bone_global_pose(bone["parent_idx"]).basis
+		var forward: Vector3 = (bone["to"] - bone["from"]).normalized()
 
-		var ee = Basis.looking_at(dir, parent_transform.basis.z)
-		new_transform.basis = Basis(ee.x.normalized(), -ee.z.normalized(), ee.y.normalized())
+		var parent_basis = parent_transform.basis
+
+		# var ref_up = parent_basis.z
+		# var deviation = parent_basis.y.angle_to(forward) * sign(forward.dot(parent_basis.z))
+
+		var old_up = new_transform.basis.z.rotated(forward, -PI / 2)
+		var preferred_up = (old_up - forward * old_up.dot(forward)).normalized()
+
+		var twist = get_roll_difference(parent_transform, new_transform)
+
+		print(twist)
+	
+		var up = forward.cross(preferred_up).normalized()
+		var normal = forward.cross(up).normalized()
+		
+		new_transform.basis = Basis(normal, forward, up).orthonormalized()
 
 		skeleton.set_bone_global_pose(bone["idx"], new_transform)
 
@@ -170,3 +187,40 @@ func apply_bias(original_from: Vector3, original_to: Vector3, length: float, bia
 	var biased_direction = (biased_position - original_from).normalized()
 
 	return original_from + biased_direction * length
+
+# Extracts the twist component from a quaternion along a given twist_axis.
+func extract_twist(q: Quaternion, twist_axis: Vector3) -> Quaternion:
+	var r: Vector3 = Vector3(q.x, q.y, q.z)
+	var proj: Vector3 = twist_axis * r.dot(twist_axis)
+	var twist_q: Quaternion = Quaternion(proj.x, proj.y, proj.z, q.w)
+	return twist_q.normalized()
+
+# Returns the roll difference (in radians) between transform1 and transform2,
+# measured around the provided twist_axis.
+func get_roll_difference(transform1: Transform3D, transform2: Transform3D) -> float:
+	# Assume transform1 and transform2 are your transforms
+	# and that their basis have the axes:
+	# forward: Y, up: Z
+
+	# Choose the forward axis from transform1
+	var forward = transform1.basis.y.normalized()
+
+	# Get the up vectors from each transform
+	var up1 = transform1.basis.z
+	var up2 = transform2.basis.z
+
+	# Project up vectors onto plane perpendicular to 'forward'
+	up1 = (up1 - forward * up1.dot(forward)).normalized()
+	up2 = (up2 - forward * up2.dot(forward)).normalized()
+
+	# Compute the angle between the projected up vectors
+	var dot_val = clamp(up1.dot(up2), -1, 1)
+	var angle = acos(dot_val)
+
+	# Determine the sign using the cross product
+	if forward.dot(up1.cross(up2)) < 0:
+		angle = -angle
+
+	return angle
+
+	# 'angle' is the roll difference (in radians)

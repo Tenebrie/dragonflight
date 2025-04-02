@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://m8665lqknwro"]
 
 [ext_resource type="PackedScene" uid="uid://q41yd0cm8fdm" path="res://assets/decimated_dragon1.glb" id="1_qbovm"]
-[ext_resource type="Script" path="res://characters/player/ik_controller_3d.gd" id="2_548jf"]
+[ext_resource type="Script" uid="uid://dli3utnpqjlhe" path="res://characters/player/ik_controller_3d.gd" id="2_548jf"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vg5uf"]
 albedo_color = Color(1, 0, 1, 1)
@@ -56,7 +56,6 @@ bones/23/scale = Vector3(1, 1, 1)
 bones/25/rotation = Quaternion(-0.212349, 0, 0.618138, 0.756844)
 bones/26/position = Vector3(1.02369e-11, 1.20299, 4.4769e-07)
 bones/26/rotation = Quaternion(0.522814, 2.70962e-08, -6.23242e-08, 0.852447)
-bones/26/scale = Vector3(1, 1, 1)
 bones/27/position = Vector3(-0.000149041, 1.14347, -0.373724)
 bones/27/rotation = Quaternion(-7.54979e-08, -2.11758e-22, 3.55271e-15, 1)
 bones/27/scale = Vector3(1, 1, 1)
