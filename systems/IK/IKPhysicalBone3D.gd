@@ -1,0 +1,3 @@
+extends PhysicalBone3D
+
+class_name IKPhysicalBone3D

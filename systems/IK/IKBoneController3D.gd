@@ -42,16 +42,19 @@ var preview: bool = false
 
 @export_range(0, 1) var rotational_stiffness: float = 0.0
 
+@export_subgroup("Jolt Integration")
+@export var simulator: PhysicalBoneSimulator3D
+
 var skeleton: Skeleton3D
 var bones: Array[Dictionary] = []
 
 var gravity_vector: Vector3
 
 func _ready() -> void:
-	print(simulation_enabled)
 	skeleton = get_parent()
 
 func _physics_process(_delta: float) -> void:
+	return
 	if not enabled:
 		return
 	if not preview and Engine.is_editor_hint():
@@ -70,6 +73,9 @@ func _physics_process(_delta: float) -> void:
 
 	var current_to = target.position
 
+	# var log = EditorInterface.get_editor_main_screen().find_child("EditorLog")
+	# print(log)
+
 	# TODO: No need to recalculate everything every frame
 	for i in range(depth):
 		var parent = skeleton.get_bone_parent(current_bone)
@@ -87,9 +93,24 @@ func _physics_process(_delta: float) -> void:
 		if i == depth - 1:
 			parent_basis = parent_basis.rotated(parent_basis.z, root_yaw * PI).rotated(parent_basis.x, -root_pitch * PI)
 
+		var physical_bone: PhysicalBone3D
+		var desired_from = from
+
+		if simulator:
+			var physical_bone_name = "Physical Bone " + skeleton.get_bone_name(current_bone).replace(".", "_")
+			physical_bone = simulator.find_child(physical_bone_name)
+			if physical_bone:
+				physical_bone.mass = 10
+				physical_bone.custom_integrator = false
+				var temp = physical_bone.global_position + physical_bone.joint_offset.origin * physical_bone.basis.inverse()
+				var final = temp * skeleton.global_transform
+
+				from = final
+
 		var bone = {
 			"idx": current_bone,
 			"parent_idx": parent,
+			"desired_from": desired_from,
 			"from": from,
 			"to": to,
 			"length": length,
@@ -98,7 +119,8 @@ func _physics_process(_delta: float) -> void:
 			# "gravity": -1,
 			# "stiffness": 0.2 + 0.4 * i,
 			"parent_basis": parent_basis,
-			"rest_basis": rest_basis
+			"rest_basis": rest_basis,
+			"physical_bone": physical_bone,
 		}
 
 		if i == depth - 1:
@@ -110,7 +132,6 @@ func _physics_process(_delta: float) -> void:
 
 	# TODO: Make this global down, not skeleton down
 	gravity_vector = Vector3.DOWN * skeleton.global_transform.inverse()
-
 	fabrik_phase1()
 	fabrik_phase2()
 
@@ -143,7 +164,43 @@ func _physics_process(_delta: float) -> void:
 		var normal = forward.cross(up).normalized()
 		
 		new_transform.basis = Basis(normal, forward, up).orthonormalized()
-		skeleton.set_bone_global_pose(bone["idx"], new_transform)
+
+		if bone["physical_bone"]:
+			var physical_bone: PhysicalBone3D = bone["physical_bone"]
+
+			var temp = physical_bone.global_position + physical_bone.joint_offset.origin * physical_bone.basis.inverse()
+			var bone_pivot = temp
+			var target_point = bone["to"] * skeleton.global_transform.inverse()
+
+			var physical_forward = - physical_bone.transform.basis.z
+			var desired_forward = forward
+			# var desired_dir: Vector3 = (target_point - bone_pivot).normalized()
+
+			var dot_val: float = clamp(physical_forward.dot(desired_forward), -1, 1)
+			var angle_error: float = acos(dot_val)
+	
+			# If the error is very small, skip applying torque.
+			if abs(angle_error) > 0.001:
+				var error_axis: Vector3 = physical_forward.cross(desired_forward).normalized()
+				var ang_vel: Vector3 = physical_bone.angular_velocity
+				var stiffness: float = -30
+				var damping: float = 1.0
+				var torque: Vector3 = error_axis * (angle_error * stiffness) - ang_vel * damping
+				# bone.apply_torque_impulse(torque * delta)
+				# PhysicsServer3D.body_apply_torque_impulse(physical_bone.get_rid(), torque * _delta)
+
+			var dir_to_target = (target_point - bone_pivot)
+			var max_impulse = bone["length"]
+			var magnitude = dir_to_target.length() * _delta
+			var direction = dir_to_target.normalized()
+			var final = direction * min(magnitude, max_impulse)
+			# physical_bone.global_position = actual_from
+			# physical_bone.global_transform = new_transform
+			# physical_bone.apply_impulse(final)
+			# PhysicsServer3D.body_add_constant_force(phys_bone.get_rid(), Vector3.UP)
+		
+		# skeleton.set_bone_global_pose(bone["idx"], new_transform)
+			
 
 func fabrik_phase1():
 	var target_pos = target.position
