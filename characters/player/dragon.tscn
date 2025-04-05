@@ -1,9 +1,8 @@
-[gd_scene load_steps=13 format=3 uid="uid://m8665lqknwro"]
+[gd_scene load_steps=11 format=3 uid="uid://m8665lqknwro"]
 
 [ext_resource type="PackedScene" uid="uid://q41yd0cm8fdm" path="res://assets/decimated_dragon1.glb" id="1_qbovm"]
 [ext_resource type="Script" uid="uid://dli3utnpqjlhe" path="res://systems/IK/IKBoneController3D.gd" id="2_548jf"]
 [ext_resource type="Texture2D" uid="uid://b7wi1s3uvl5ea" path="res://addons/godot-prototype-texture/PNG/grid_512x512/grid_black_512x512.png" id="3_v1oi1"]
-[ext_resource type="Script" uid="uid://4mlml6ysrb1b" path="res://systems/IK/IKBoneTarget3D.gd" id="4_4c5uq"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_v1oi1"]
 albedo_texture = ExtResource("3_v1oi1")
@@ -14,195 +13,147 @@ material = SubResource("StandardMaterial3D_v1oi1")
 radius = 0.25
 height = 0.5
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mwo1l"]
-albedo_texture = ExtResource("3_v1oi1")
-uv1_scale = Vector3(4, 4, 4)
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_200ft"]
+radius = 0.17
+height = 1.015
 
-[sub_resource type="SphereMesh" id="SphereMesh_4jj8v"]
-material = SubResource("StandardMaterial3D_mwo1l")
-radius = 0.25
-height = 0.5
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_v1oi1"]
+radius = 0.195
+height = 1.01
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rkrsc"]
-albedo_texture = ExtResource("3_v1oi1")
-uv1_scale = Vector3(4, 4, 4)
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4c5uq"]
+radius = 0.34
+height = 1.295
 
-[sub_resource type="SphereMesh" id="SphereMesh_euuxu"]
-material = SubResource("StandardMaterial3D_rkrsc")
-radius = 0.25
-height = 0.5
+[sub_resource type="BoxShape3D" id="BoxShape3D_4c5uq"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_21qy4"]
-albedo_texture = ExtResource("3_v1oi1")
-uv1_scale = Vector3(4, 4, 4)
-
-[sub_resource type="SphereMesh" id="SphereMesh_oclpe"]
-material = SubResource("StandardMaterial3D_21qy4")
-radius = 0.25
-height = 0.5
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_4c5uq"]
 
 [node name="Dragon" instance=ExtResource("1_qbovm")]
 
 [node name="Armature" parent="." index="0"]
-transform = Transform3D(1, 0, 0, 0, 0.361625, -0.932324, 0, 0.932324, 0.361625, 0, 1.66284, -1.62036)
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
 
 [node name="Skeleton3D" parent="Armature" index="0"]
 animate_physical_bones = false
-bones/3/position = Vector3(-1.13687e-13, 1.89649, 2.68221e-07)
-bones/3/rotation = Quaternion(-0.570891, -0.00504364, -0.00725635, 0.820978)
-bones/3/scale = Vector3(1, 1, 1)
-bones/4/position = Vector3(-4.65661e-08, 2.76447, -7.15256e-07)
-bones/4/rotation = Quaternion(0.425949, 0.00885886, -0.0186968, 0.90451)
-bones/4/scale = Vector3(1, 1, 1)
-bones/5/position = Vector3(-2.98023e-08, 1.57666, -3.57628e-07)
-bones/5/rotation = Quaternion(0.207043, 0.00154982, -0.00672874, 0.978307)
-bones/5/scale = Vector3(1, 1, 1)
-bones/6/position = Vector3(-1.13687e-13, 1.89649, 2.68221e-07)
-bones/6/rotation = Quaternion(0.187608, -0.512578, -0.526581, 0.651751)
-bones/6/scale = Vector3(1, 1, 1)
-bones/7/position = Vector3(4.76837e-07, 2.10231, -1.78814e-07)
-bones/7/rotation = Quaternion(0.0486249, -0.0205061, 0.387466, 0.920372)
-bones/7/scale = Vector3(1, 1, 1)
-bones/8/position = Vector3(0, 1.58965, 5.96046e-08)
-bones/8/rotation = Quaternion(0.0279107, -0.00525886, 0.181639, 0.982955)
-bones/8/scale = Vector3(1, 1, 1)
-bones/9/position = Vector3(-1.13687e-13, 1.89649, 2.68221e-07)
-bones/9/rotation = Quaternion(-0.311785, -0.23192, -0.549934, 0.739308)
-bones/9/scale = Vector3(1, 1, 1)
-bones/10/position = Vector3(-7.15256e-07, 3.67773, -7.15256e-07)
-bones/10/rotation = Quaternion(-0.0225989, 0.000199938, 0.00643687, 0.999724)
-bones/10/scale = Vector3(1, 1, 1)
-bones/11/position = Vector3(-2.38419e-07, 2.87929, 4.76837e-07)
-bones/11/rotation = Quaternion(-0.0195834, 7.89034e-05, 0.00557134, 0.999793)
-bones/11/scale = Vector3(1, 1, 1)
-bones/26/position = Vector3(-7.54254e-15, 1.20299, -6.11123e-08)
-bones/26/rotation = Quaternion(0.528395, -5.60565e-05, -3.48988e-05, 0.848999)
+bones/26/position = Vector3(0, 0.973409, 0)
+bones/26/rotation = Quaternion(-0.184401, 8.7301e-05, 0.000241717, 0.982851)
 bones/26/scale = Vector3(1, 1, 1)
-bones/27/position = Vector3(-1.08187e-11, 0.913877, -1.29616e-08)
-bones/27/rotation = Quaternion(-0.138962, 0.00822871, 0.0593186, 0.988485)
+bones/27/position = Vector3(0.0292868, 0.912512, -0.243298)
+bones/27/rotation = Quaternion(-0.186813, 3.76544e-05, 0.00025172, 0.982396)
 bones/27/scale = Vector3(1, 1, 1)
-bones/28/position = Vector3(-5.21541e-08, 1.01986, -2.98023e-08)
-bones/28/rotation = Quaternion(-0.111611, 0.00232424, 0.0216014, 0.993514)
+bones/28/position = Vector3(-5.58794e-09, 1.0197, -1.49012e-08)
+bones/28/rotation = Quaternion(-0.028171, -4.92389e-06, -0.00136185, 0.999602)
 bones/28/scale = Vector3(1, 1, 1)
-bones/29/position = Vector3(2.98023e-08, 0.877329, 0)
-bones/29/rotation = Quaternion(-0.102791, 0.000983726, 0.00893072, 0.994662)
+bones/29/position = Vector3(2.32831e-09, 0.878866, -1.49012e-08)
+bones/29/rotation = Quaternion(-0.0190947, -0.000154326, -0.00109391, 0.999817)
 bones/29/scale = Vector3(1, 1, 1)
-bones/30/position = Vector3(-1.49012e-08, 1.06478, 0)
-bones/30/rotation = Quaternion(-0.0966425, 0.00047511, 0.00441743, 0.995309)
+bones/30/position = Vector3(9.31323e-10, 1.0654, -2.98023e-08)
+bones/30/rotation = Quaternion(-0.0119722, 2.53432e-05, -0.000899427, 0.999928)
 bones/30/scale = Vector3(1, 1, 1)
-bones/31/position = Vector3(5.96046e-08, 0.951849, -1.19209e-07)
-bones/31/rotation = Quaternion(-0.07944, 0.000261346, 0.00233417, 0.996837)
+bones/31/position = Vector3(-1.86265e-09, 0.951251, 5.96046e-08)
+bones/31/rotation = Quaternion(-0.00641781, 4.62675e-05, -0.000745364, 0.999979)
 bones/31/scale = Vector3(1, 1, 1)
-bones/32/position = Vector3(8.9407e-08, 0.84381, 4.76837e-07)
-bones/32/rotation = Quaternion(-0.0711559, 3.60087e-07, 0.00151921, 0.997464)
+bones/32/position = Vector3(0, 0.84434, -2.98023e-08)
+bones/32/rotation = Quaternion(-0.00119816, 5.56214e-05, -0.000668442, 0.999999)
 bones/32/scale = Vector3(1, 1, 1)
-bones/33/position = Vector3(0, 1.14803, 2.38419e-07)
-bones/33/rotation = Quaternion(-0.0658299, 6.29547e-05, 0.00117836, 0.99783)
+bones/33/position = Vector3(-7.45058e-09, 1.14704, 8.9407e-08)
+bones/33/rotation = Quaternion(0.00404098, 6.45784e-07, -0.00064361, 0.999992)
 bones/33/scale = Vector3(1, 1, 1)
-bones/34/position = Vector3(0, 1.11187, -2.38419e-07)
-bones/34/rotation = Quaternion(-0.0523796, 1.19511e-06, 0.000856502, 0.998627)
+bones/34/position = Vector3(7.45058e-09, 1.11101, 5.96046e-08)
+bones/34/rotation = Quaternion(0.00910876, -8.02038e-05, -0.000641701, 0.999958)
 bones/34/scale = Vector3(1, 1, 1)
-bones/35/position = Vector3(-8.9407e-08, 1.01024, 0)
-bones/35/rotation = Quaternion(-0.0403565, -1.21122e-05, 0.000627861, 0.999185)
+bones/35/position = Vector3(-7.45058e-09, 1.01017, -1.19209e-07)
+bones/35/rotation = Quaternion(0.0157638, 2.21927e-05, -0.000701295, 0.999875)
 bones/35/scale = Vector3(1, 1, 1)
-bones/36/position = Vector3(8.9407e-08, 1.11811, 0)
-bones/36/rotation = Quaternion(-0.030701, -7.3061e-05, 0.000466719, 0.999529)
+bones/36/position = Vector3(-7.45058e-09, 1.11884, -5.96046e-08)
+bones/36/rotation = Quaternion(0.0253547, 6.88716e-05, -0.000838179, 0.999678)
 bones/36/scale = Vector3(1, 1, 1)
-bones/37/position = Vector3(5.96046e-08, 1.06289, 0)
-bones/37/rotation = Quaternion(-0.0236364, 1.74969e-05, 0.000354631, 0.999721)
+bones/37/position = Vector3(0, 1.06183, 0)
+bones/37/rotation = Quaternion(0.0472721, 0.000133353, -0.00124529, 0.998881)
 bones/37/scale = Vector3(1, 1, 1)
-bones/38/position = Vector3(-5.96046e-08, 1.29938, -4.76837e-07)
-bones/38/rotation = Quaternion(-0.0164902, 7.1218e-05, 0.000244339, 0.999864)
+bones/38/position = Vector3(0, 1.30255, 1.19209e-07)
+bones/38/rotation = Quaternion(0.086862, 0.000250152, -0.00199207, 0.996218)
 bones/38/scale = Vector3(1, 1, 1)
-bones/39/position = Vector3(-5.96046e-08, 0.988071, 0)
-bones/39/rotation = Quaternion(-0.00826374, 1.69896e-05, 0.00012005, 0.999966)
+bones/39/position = Vector3(1.49012e-08, 0.990582, 2.38419e-07)
+bones/39/rotation = Quaternion(0.0965931, 0.000276024, -0.00208627, 0.995322)
 bones/39/scale = Vector3(1, 1, 1)
 
-[node name="TailController" type="BoneAttachment3D" parent="Armature/Skeleton3D" index="1" node_paths=PackedStringArray("target")]
-transform = Transform3D(-0.980679, 0.0663589, 0.184026, -0.176623, 0.104079, -0.97876, -0.0841026, -0.992353, -0.0903474, 1.47354, -5.13922, -10.3809)
-bone_name = "Tail.014"
-bone_idx = 39
+[node name="TailController" type="Node3D" parent="Armature/Skeleton3D" index="1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.43051e-06, -15.9892, -3.98868)
 script = ExtResource("2_548jf")
-target = NodePath("../TailTarget")
-depth = 14
+depth = 13
 simulation_enabled = true
 editor_preview = true
 root_stiffness = 1.0
-root_pitch = -0.31
-bone_weight = 0.004
-stiffness = 0.221
+root_pitch = 0.109
+gravity = 0.033
+stiffness = 0.674
 metadata/_custom_type_script = "uid://dli3utnpqjlhe"
 
-[node name="TailTarget" type="MeshInstance3D" parent="Armature/Skeleton3D" index="2"]
-transform = Transform3D(1, 0, 0, 0, 0.361625, 0.932324, 0, -0.932324, 0.361625, 1.64369, -4.85718, -12.9551)
+[node name="TailTarget" type="MeshInstance3D" parent="Armature/Skeleton3D/TailController" index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.83162, -0.172569)
 mesh = SubResource("SphereMesh_4c5uq")
-skeleton = NodePath("../../..")
-script = ExtResource("4_4c5uq")
+skeleton = NodePath("../../../..")
 metadata/_custom_type_script = "uid://4mlml6ysrb1b"
 
-[node name="HeadController" type="BoneAttachment3D" parent="Armature/Skeleton3D" index="3" node_paths=PackedStringArray("target")]
-transform = Transform3D(0.997848, 0.0564073, -0.0334335, -0.0653437, 0.897851, -0.435424, 0.00545716, 0.436672, 0.899604, 0.131811, 6.81561, -1.08262)
-bone_name = "Head"
-bone_idx = 5
-script = ExtResource("2_548jf")
-target = NodePath("../HeadTarget")
-depth = 3
-simulation_enabled = true
-editor_preview = true
-root_stiffness = 0.695
-root_pitch = 0.488
-stiffness = 0.385
-metadata/_custom_type_script = "uid://dli3utnpqjlhe"
+[node name="Tail_014" type="BoneAttachment3D" parent="Armature/Skeleton3D/TailController" index="1"]
+transform = Transform3D(0.999865, 0.00690602, -0.014927, 0.0144861, -0.799553, 0.600421, -0.00778838, -0.600556, -0.799545, -0.0191983, 2.80626, 1.95645)
+bone_name = "Tail.014"
+bone_idx = 39
+use_external_skeleton = true
+external_skeleton = NodePath("../..")
 
-[node name="HeadTarget" type="MeshInstance3D" parent="Armature/Skeleton3D" index="4"]
-transform = Transform3D(1, 0, 0, 0, 0.361625, 0.932324, 0, -0.932324, 0.361625, 0.397822, 10.5538, 2.12783)
-mesh = SubResource("SphereMesh_4jj8v")
-skeleton = NodePath("../../..")
-script = ExtResource("4_4c5uq")
-metadata/_custom_type_script = "uid://4mlml6ysrb1b"
+[node name="RigidBody3D" type="RigidBody3D" parent="Armature/Skeleton3D/TailController/Tail_014" index="0"]
+collision_layer = 0
 
-[node name="LeftFrontLegController" type="BoneAttachment3D" parent="Armature/Skeleton3D" index="5" node_paths=PackedStringArray("target")]
-transform = Transform3D(0.316466, 0.183548, -0.930677, -0.317355, 0.945054, 0.0784706, 0.893943, 0.270522, 0.357327, 1.57426, 4.76402, 3.63035)
-bone_name = "Leg.Front.003.L"
-bone_idx = 8
-script = ExtResource("2_548jf")
-target = NodePath("../LeftFrontLegTarget")
-depth = 3
-simulation_enabled = true
-editor_preview = true
-root_stiffness = 0.175
-root_pitch = -0.569
-root_yaw = -0.136
-root_roll = -0.361
-stiffness = 0.131
-metadata/_custom_type_script = "uid://dli3utnpqjlhe"
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Armature/Skeleton3D/TailController/Tail_014/RigidBody3D" index="0"]
+transform = Transform3D(1, -1.73226e-07, -0.000856238, 1.57394e-07, 1, -1.46627e-05, 0.000856242, 1.47521e-05, 1, 0.003948, 0.426757, 0.00858307)
+shape = SubResource("CapsuleShape3D_200ft")
 
-[node name="LeftFrontLegTarget" type="MeshInstance3D" parent="Armature/Skeleton3D" index="6"]
-transform = Transform3D(1, 0, 0, 0, 0.361625, 0.932324, 0, -0.932324, 0.361625, 1.68141, 5.41483, 3.78273)
-mesh = SubResource("SphereMesh_euuxu")
-skeleton = NodePath("../../..")
-script = ExtResource("4_4c5uq")
-metadata/_custom_type_script = "uid://4mlml6ysrb1b"
+[node name="Tail_013" type="BoneAttachment3D" parent="Armature/Skeleton3D/TailController" index="2"]
+transform = Transform3D(0.999883, 0.00554815, -0.0142729, 0.0112107, -0.900136, 0.435464, -0.0104315, -0.435573, -0.900093, -0.0246942, 3.69792, 2.38792)
+bone_name = "Tail.013"
+bone_idx = 38
+use_external_skeleton = true
+external_skeleton = NodePath("../..")
 
-[node name="LeftWingBaseController" type="BoneAttachment3D" parent="Armature/Skeleton3D" index="7" node_paths=PackedStringArray("target")]
-transform = Transform3D(0.310444, 0.94717, 0.080581, -0.86507, 0.246358, 0.436992, 0.394054, -0.20537, 0.895848, 6.26634, 5.10186, 0.0150027)
-bone_name = "Wing.Finger.001.L"
-bone_idx = 11
-script = ExtResource("2_548jf")
-target = NodePath("../LeftWingBaseTarget")
-depth = 3
-simulation_enabled = true
-editor_preview = true
-root_stiffness = 0.262
-root_pitch = 0.038
-root_yaw = -0.404
-stiffness = 0.657
-rotational_stiffness = 0.775
-metadata/_custom_type_script = "uid://dli3utnpqjlhe"
+[node name="RigidBody3D" type="RigidBody3D" parent="Armature/Skeleton3D/TailController/Tail_013" index="0"]
+collision_layer = 0
 
-[node name="LeftWingBaseTarget" type="MeshInstance3D" parent="Armature/Skeleton3D" index="8"]
-transform = Transform3D(1, 0, 0, 0, 0.361625, 0.932324, 0, -0.932324, 0.361625, 15.3894, 7.3668, -2.73036)
-mesh = SubResource("SphereMesh_oclpe")
-skeleton = NodePath("../../..")
-script = ExtResource("4_4c5uq")
-metadata/_custom_type_script = "uid://4mlml6ysrb1b"
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Armature/Skeleton3D/TailController/Tail_013/RigidBody3D" index="0"]
+transform = Transform3D(0.999999, -7.54371e-08, 0.00143118, 7.45058e-08, 1, 2.08616e-06, -0.00143117, -1.84774e-06, 0.999999, -0.00513993, 0.511266, 0.0154719)
+shape = SubResource("CapsuleShape3D_v1oi1")
+
+[node name="Tail_012" type="BoneAttachment3D" parent="Armature/Skeleton3D/TailController" index="3"]
+transform = Transform3D(0.999895, 0.00400941, -0.0139417, 0.00766516, -0.961955, 0.2731, -0.0123163, -0.273179, -0.961884, -0.0299167, 4.95091, 2.74374)
+bone_name = "Tail.012"
+bone_idx = 37
+use_external_skeleton = true
+external_skeleton = NodePath("../..")
+
+[node name="RigidBody3D" type="RigidBody3D" parent="Armature/Skeleton3D/TailController/Tail_012" index="0"]
+transform = Transform3D(1, 0, -4.65661e-10, 0, 1, -2.98023e-08, -9.31323e-10, 0, 1, 0, 0, 0)
+collision_layer = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Armature/Skeleton3D/TailController/Tail_012/RigidBody3D" index="0"]
+transform = Transform3D(1, -9.31323e-10, 9.31323e-10, 9.31323e-10, 1, 2.98023e-08, 4.65661e-10, 0, 1, 7.45058e-09, 0.649436, -0.0206633)
+shape = SubResource("CapsuleShape3D_4c5uq")
+
+[node name="CharacterBody3D" type="CharacterBody3D" parent="." index="1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.38419e-07, 1.19209e-07)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CharacterBody3D" index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.603505, 1.71313)
+shape = SubResource("BoxShape3D_4c5uq")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="CharacterBody3D" index="1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.22607, 0)
+mesh = SubResource("CapsuleMesh_4c5uq")
+
+[node name="PinJoint3D" type="PinJoint3D" parent="." index="2"]
+transform = Transform3D(1, 0, 0, 0, 1, 2.98023e-08, 0, -2.98023e-08, 1, 0, -7.15256e-07, 3.57628e-07)
+node_a = NodePath("../CharacterBody3D")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." index="3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.47491, -2.08235)

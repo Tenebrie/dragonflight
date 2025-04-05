@@ -1,10 +1,10 @@
 @tool
 
-extends BoneAttachment3D
+extends Node3D
+
 class_name IKBoneController3D
 ## Fabrik-based inverse kinematics for 3D bones
 
-@export var target: Node3D
 @export_range(1, 100) var depth: int = 1
 
 var enabled: bool = true
@@ -51,12 +51,22 @@ func _ready() -> void:
 	print(simulation_enabled)
 	skeleton = get_parent()
 
+func _process(_delta: float) -> void:
+	for i in range(get_child_count()):
+		var child = get_child(i)
+		if child.get_class() != "BoneAttachment3D" || child.bone_idx == -1:
+			continue
+		var bone_transform: Transform3D = skeleton.get_bone_global_pose(child.bone_idx)
+		child.global_position = bone_transform.origin * skeleton.global_transform.inverse()
+
 func _physics_process(_delta: float) -> void:
+	if get_child_count() == 0:
+		return
+	var first_child: BoneAttachment3D = get_child(1)
+	var bone_idx = first_child.bone_idx
 	if not enabled:
 		return
 	if not preview and Engine.is_editor_hint():
-		return
-	if not target or not target.is_inside_tree():
 		return
 	if not skeleton:
 		return
@@ -68,7 +78,7 @@ func _physics_process(_delta: float) -> void:
 	bones = []
 	var current_bone = bone_idx
 
-	var current_to = target.position
+	var current_to = skeleton.global_transform.inverse() * get_child(0).global_position
 
 	# TODO: No need to recalculate everything every frame
 	for i in range(depth):
@@ -87,6 +97,11 @@ func _physics_process(_delta: float) -> void:
 		if i == depth - 1:
 			parent_basis = parent_basis.rotated(parent_basis.z, root_yaw * PI).rotated(parent_basis.x, -root_pitch * PI)
 
+		var node
+		var node_name = skeleton.get_bone_name(current_bone).replace(".", "_")
+		if find_child(node_name):
+			node = find_child(node_name)
+
 		var bone = {
 			"idx": current_bone,
 			"parent_idx": parent,
@@ -98,7 +113,8 @@ func _physics_process(_delta: float) -> void:
 			# "gravity": -1,
 			# "stiffness": 0.2 + 0.4 * i,
 			"parent_basis": parent_basis,
-			"rest_basis": rest_basis
+			"rest_basis": rest_basis,
+			"node": node,
 		}
 
 		if i == depth - 1:
@@ -130,7 +146,6 @@ func _physics_process(_delta: float) -> void:
 
 		var old_up = new_transform.basis.z.rotated(forward, -PI / 2)
 		var preferred_up = (old_up - forward * old_up.dot(forward)).normalized()
-		# var preferred_up = old_up
 
 		var twist = get_roll_difference(new_transform, parent_transform)
 
@@ -146,11 +161,11 @@ func _physics_process(_delta: float) -> void:
 		skeleton.set_bone_global_pose(bone["idx"], new_transform)
 
 func fabrik_phase1():
-	var target_pos = target.position
+	var target_pos = skeleton.global_transform.inverse() * get_child(0).global_position
 
 	for i in range(depth):
 		var bone = bones[i]
-		bone["to"] = target_pos
+		# bone["to"] = target_pos
 
 		bone["from"] = apply_bias(bone["to"], bone["from"], bone["length"], bone["parent_basis"].y, bone["stiffness"])
 		bone["from"] = apply_bias(bone["to"], bone["from"], bone["length"], -gravity_vector, bone["gravity"])
@@ -207,6 +222,20 @@ func fabrik_phase2():
 # 		"roll": euler.z,
 # 		"yaw": euler.y,
 	# }
+
+func apply_collisions() -> Vector3:
+	if bone["node"]:
+		var body: RigidBody3D = bone["node"].get_child(0)
+
+		var params = PhysicsTestMotionParameters3D.new()
+		params.from = skeleton.global_transform * new_transform
+		# print(params.from.origin)
+		params.motion = Vector3.UP
+		# params.to = new_transform.origin
+		var result: PhysicsTestMotionResult3D = PhysicsTestMotionResult3D.new()
+		PhysicsServer3D.body_test_motion(body.get_rid(), params, result)
+		if result.get_collision_count() > 0:
+			print(result.get_collision_count())
 
 func apply_bias(original_from: Vector3, original_to: Vector3, length: float, bias_to: Vector3, influence: float) -> Vector3:
 	var desired_direction = (original_to - original_from).normalized()

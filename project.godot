@@ -44,7 +44,8 @@ camera_right={
 
 [physics]
 
-3d/physics_engine="Jolt Physics"
+3d/default_linear_damp=5.0
+3d/default_angular_damp=5.0
 
 [rendering]
 
