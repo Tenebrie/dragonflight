@@ -14,3 +14,4 @@ func _ready() -> void:
 	sphere_mat.uv1_scale = Vector3(4.0, 4.0, 4.0)
 	
 	mesh.material = sphere_mat
+	set_script(null)
