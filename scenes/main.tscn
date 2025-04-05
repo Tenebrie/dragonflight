@@ -27,7 +27,7 @@ transform = Transform3D(0.999582, 0, 0.0289161, -0.0219745, 0.649992, 0.759623, 
 script = ExtResource("3_1vn7m")
 
 [node name="Camera3D" type="Camera3D" parent="CameraOrigin"]
-transform = Transform3D(-1, 4.37114e-08, -7.57103e-08, 0, 0.866025, 0.5, 8.74228e-08, 0.5, -0.866025, 0, 11.7359, -12.7468)
+transform = Transform3D(-0.5, -0.433013, 0.75, 9.47311e-16, 0.866025, 0.5, -0.866026, 0.25, -0.433013, 8, 7.8379, -9.7468)
 
 [node name="StaticBody3D" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 50.7625)
@@ -43,7 +43,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0466526, 0)
 shape = SubResource("ConcavePolygonShape3D_tefeu")
 
 [node name="StaticBody3D2" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.739879, -34.7894)
+transform = Transform3D(0.80763, -0.58969, 0, 0.58969, 0.80763, 0, 0, 0, 1, 1.19007, -5.58455, -0.271568)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D2"]
 transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 1.46737, 5.87981, -8.89161)
@@ -54,89 +54,5 @@ mesh = SubResource("CylinderMesh_tefeu")
 transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 1.46737, 5.87981, -8.89161)
 shape = SubResource("ConcavePolygonShape3D_o6xl0")
 
-[node name="Dragon2" parent="." instance=ExtResource("1_0wfyh")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.956, 0.738932)
-
-[node name="TailController" parent="Dragon2/Armature/Skeleton3D" index="1"]
-transform = Transform3D(0.999633, -0.0224009, -0.0152304, -0.0152304, -0.929757, 0.367858, -0.0224009, -0.367491, -0.929758, 0.00860451, -12.597, -4.44655)
-
-[node name="HeadController" parent="Dragon2/Armature/Skeleton3D" index="3"]
-transform = Transform3D(0.999919, -0.0127371, -0.00035372, 0.00688872, 0.563733, -0.825928, 0.0107193, 0.825858, 0.563775, -7.92548e-14, 6.5272, -1.0052)
-
-[node name="LeftFrontLegController" parent="Dragon2/Armature/Skeleton3D" index="5"]
-transform = Transform3D(0.779229, 0.0533598, -0.624463, -0.308917, 0.899629, -0.308605, 0.545318, 0.433382, 0.7175, 0.90382, 3.17569, 3.26251)
-
-[node name="LeftWingBaseController" parent="Dragon2/Armature/Skeleton3D" index="7"]
-transform = Transform3D(0.405829, 0.388302, 0.82736, -0.878829, -0.0827392, 0.469907, 0.250921, -0.91781, 0.307673, 2.80522, 5.41754, -3.40582)
-
-[node name="Physical Bone Root" parent="Dragon2/Armature/Skeleton3D/PhysicalBoneSimulator3D" index="0"]
-transform = Transform3D(1, -1.34045e-11, -7.53218e-13, 5.40532e-12, 0.453333, -0.891342, 1.22894e-11, 0.891342, 0.453333, -2.34007e-10, 3.43572, 1.00364)
-joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.34472e-10, -8.45139e-05, 0.619241)
-body_offset = Transform3D(1, -1.34045e-11, -7.53218e-13, -7.53205e-13, 9.53674e-07, -1, 1.34045e-11, 1, 9.53674e-07, -2.34007e-10, 0.619241, 8.39233e-05)
-
-[node name="Physical Bone Tail_013" parent="Dragon2/Armature/Skeleton3D/PhysicalBoneSimulator3D" index="1"]
-transform = Transform3D(0.999587, -0.0187957, 0.0217494, 0.0257604, 0.921466, -0.387603, -0.0127561, 0.388004, 0.92157, 0.0260025, 8.07644, -11.0736)
-joint_offset = Transform3D(0.999998, 0, 0, 0, 0.999998, 0, 0, 0, 0.999997, -0.0004308, 0.000591725, 0.138472)
-body_offset = Transform3D(0.999985, -0.00540021, 0.00148639, 0.00146396, -0.00415766, -0.999991, 0.00540634, 0.999977, -0.00414959, 0.000228167, 0.138474, -1.4782e-05)
-
-[node name="Physical Bone Tail_012" parent="Dragon2/Armature/Skeleton3D/PhysicalBoneSimulator3D" index="2"]
-transform = Transform3D(0.999678, -0.0165299, 0.0192442, 0.0224172, 0.930709, -0.365072, -0.0118762, 0.365386, 0.93078, 0.0418224, 7.74016, -10.2198)
-joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000247261, 0.000644271, 0.520224)
-body_offset = Transform3D(0.999989, -0.00446946, 0.00152357, 0.00151616, -0.00166434, -0.999998, 0.00447198, 0.999989, -0.00165749, -0.000542462, 0.520225, 0.000219107)
-
-[node name="Physical Bone Tail_011" parent="Dragon2/Armature/Skeleton3D/PhysicalBoneSimulator3D" index="3"]
-transform = Transform3D(0.99976, -0.0133449, 0.0173756, 0.0190072, 0.922741, -0.384953, -0.010896, 0.38519, 0.922773, 0.0589486, 7.33731, -9.21919)
-joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.47564e-05, 0.000414989, 0.504299)
-body_offset = Transform3D(0.999993, -0.00325267, 0.00219528, 0.00218883, -0.00198981, -0.999996, 0.00325702, 0.999993, -0.00198251, -0.00109097, 0.504298, 0.000584841)
-
-[node name="Physical Bone Tail_010" parent="Dragon2/Armature/Skeleton3D/PhysicalBoneSimulator3D" index="4"]
-transform = Transform3D(0.999873, -0.0109239, 0.0115883, 0.0142344, 0.939335, -0.342707, -0.00714158, 0.342828, 0.939371, 0.0719493, 6.95685, -8.25331)
-joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00040324, 0.00316712, 0.584557)
-body_offset = Transform3D(0.999992, -0.00379213, 0.00140096, 0.00140343, 0.000645041, -0.999999, 0.00379122, 0.999993, 0.000650465, -0.00121017, 0.584554, -0.00354886)
-
-[node name="Physical Bone Tail_009" parent="Dragon2/Armature/Skeleton3D/PhysicalBoneSimulator3D" index="5"]
-transform = Transform3D(0.999949, -0.00694542, 0.00734573, 0.00908781, 0.935873, -0.35222, -0.00442835, 0.352269, 0.935888, 0.0808803, 6.57067, -7.22566)
-joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000142547, 0.00932501, 0.497081)
-body_offset = Transform3D(0.999992, -0.00336253, 0.00216461, 0.00216203, -0.000773698, -0.999998, 0.0033642, 0.999994, -0.000766307, -0.000902086, 0.497087, -0.00894356)
-
-[node name="Physical Bone Tail_008" parent="Dragon2/Armature/Skeleton3D/PhysicalBoneSimulator3D" index="6"]
-transform = Transform3D(0.999993, -0.00314721, 0.00208115, 0.00368641, 0.932502, -0.361146, -0.00080407, 0.361151, 0.932507, 0.0833321, 6.18256, -6.17467)
-joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000717166, 0.00298226, 0.487823)
-body_offset = Transform3D(0.999996, -0.00269777, 0.00142092, 0.00140496, -0.00591102, -0.999982, 0.00270612, 0.999979, -0.00590709, -0.00140227, 0.487831, -0.00010252)
-
-[node name="Physical Bone Tail_007" parent="Dragon2/Armature/Skeleton3D/PhysicalBoneSimulator3D" index="7"]
-transform = Transform3D(0.999967, 0.00533243, -0.00618091, -0.00724377, 0.928734, -0.370677, 0.00376381, 0.370709, 0.928741, 0.0776225, 5.76428, -5.11612)
-joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.41465e-05, 0.00416337, 0.497683)
-body_offset = Transform3D(0.999995, -0.000870357, 0.00297402, 0.00297397, -5.50449e-05, -0.999996, 0.000870517, 1, -5.23925e-05, -0.00145235, 0.497682, -0.00413728)
-
-[node name="Physical Bone Tail_006" parent="Dragon2/Armature/Skeleton3D/PhysicalBoneSimulator3D" index="8"]
-transform = Transform3D(0.999946, 0.00519302, -0.00898331, -0.00792006, 0.941312, -0.337446, 0.00670372, 0.337499, 0.941302, 0.0691277, 5.43574, -4.24922)
-joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.02778e-05, -0.0003578, 0.414655)
-body_offset = Transform3D(0.999995, -0.00249273, 0.00188798, 0.0018985, 0.00422555, -0.99999, 0.00248473, 0.999988, 0.00423032, -0.000723474, 0.414653, -0.00139618)
-
-[node name="Physical Bone Tail_005" parent="Dragon2/Armature/Skeleton3D/PhysicalBoneSimulator3D" index="9"]
-transform = Transform3D(0.999816, 0.0157182, 0.0109679, -0.0157475, 0.347465, 0.937561, 0.0109259, -0.937561, 0.347649, 0.0588212, 5.14812, -3.4634)
-joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000127028, -0.529441, 0.000401334)
-body_offset = Transform3D(1, -2.16812e-06, 2.60596e-05, 2.15136e-06, 1, 0.000310063, -2.60635e-05, -0.000310123, 1, 0.00012587, 0.529441, -0.000565529)
-
-[node name="Physical Bone Tail_004" parent="Dragon2/Armature/Skeleton3D/PhysicalBoneSimulator3D" index="10"]
-transform = Transform3D(0.999821, 0.012002, -0.014644, -0.0162624, 0.940451, -0.339541, 0.00969676, 0.339718, 0.940477, 0.0369259, 4.74128, -2.35515)
-joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.02083e-06, 0.000824068, 0.413246)
-body_offset = Transform3D(0.999993, -0.000856767, 0.00364443, 0.00364561, 0.00138995, -0.999993, 0.000851691, 0.999999, 0.00139308, -0.00151036, 0.413241, -0.00139976)
-
-[node name="Physical Bone Tail_003" parent="Dragon2/Armature/Skeleton3D/PhysicalBoneSimulator3D" index="11"]
-transform = Transform3D(0.999665, 0.0157715, -0.0205442, -0.0213425, 0.951005, -0.308437, 0.0146731, 0.308772, 0.951023, 0.0959616, 4.47186, -1.4706)
-joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.076872, -0.0303156, 0.368208)
-body_offset = Transform3D(0.999998, -0.000626986, 0.00202357, 0.0020234, -0.000255734, -0.999998, 0.000627494, 1, -0.000254422, 0.0761077, 0.368355, 0.0304575)
-
-[node name="Physical Bone Tail_002" parent="Dragon2/Armature/Skeleton3D/PhysicalBoneSimulator3D" index="12"]
-transform = Transform3D(0.999916, 0.00748584, -0.0105471, -0.0106799, 0.937858, -0.346855, 0.00729522, 0.346938, 0.93786, 0.00619185, 4.16407, -0.675691)
-joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000540463, -0.0015168, 0.53475)
-body_offset = Transform3D(1, -7.64544e-05, 0.000310028, 0.000310043, 0.000261247, -1, 7.63722e-05, 1, 0.000261307, 0.000374559, 0.53475, 0.00137711)
-
-[node name="Physical Bone Tail_001" parent="Dragon2/Armature/Skeleton3D/PhysicalBoneSimulator3D" index="13"]
-transform = Transform3D(1, 1.99999e-08, -9.77248e-08, 9.72351e-08, 0.0231713, 0.999732, 2.2259e-08, -0.999732, 0.0231713, 2.92152e-08, 3.97023, 0.238709)
-joint_offset = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.94648e-08, -0.500418, -0.0026394)
-body_offset = Transform3D(1, 1.99999e-08, -9.77248e-08, -2e-08, 1, -7.48783e-07, 9.77248e-08, 7.45058e-07, 1, 2.92152e-08, 0.500418, 0.00263977)
-
-[editable path="Dragon2"]
+[node name="Dragon" parent="." instance=ExtResource("1_0wfyh")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.93661, 0)
