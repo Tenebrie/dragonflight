@@ -1,5 +1,3 @@
-@tool
-
 extends BoneAttachment3D
 class_name IKBoneController3D
 ## Fabrik-based inverse kinematics for 3D bones
@@ -54,7 +52,6 @@ func _ready() -> void:
 	skeleton = get_parent()
 
 func _physics_process(_delta: float) -> void:
-	return
 	if not enabled:
 		return
 	if not preview and Engine.is_editor_hint():
@@ -166,37 +163,24 @@ func _physics_process(_delta: float) -> void:
 		new_transform.basis = Basis(normal, forward, up).orthonormalized()
 
 		if bone["physical_bone"]:
-			var physical_bone: PhysicalBone3D = bone["physical_bone"]
+			var physical_bone: IKPhysicalBone3D = bone["physical_bone"]
 
 			var temp = physical_bone.global_position + physical_bone.joint_offset.origin * physical_bone.basis.inverse()
 			var bone_pivot = temp
-			var target_point = bone["to"] * skeleton.global_transform.inverse()
+			var target_point = skeleton.global_transform * bone["to"]
 
 			var physical_forward = - physical_bone.transform.basis.z
 			var desired_forward = forward
 			# var desired_dir: Vector3 = (target_point - bone_pivot).normalized()
 
-			var dot_val: float = clamp(physical_forward.dot(desired_forward), -1, 1)
-			var angle_error: float = acos(dot_val)
-	
-			# If the error is very small, skip applying torque.
-			if abs(angle_error) > 0.001:
-				var error_axis: Vector3 = physical_forward.cross(desired_forward).normalized()
-				var ang_vel: Vector3 = physical_bone.angular_velocity
-				var stiffness: float = -30
-				var damping: float = 1.0
-				var torque: Vector3 = error_axis * (angle_error * stiffness) - ang_vel * damping
-				# bone.apply_torque_impulse(torque * delta)
-				# PhysicsServer3D.body_apply_torque_impulse(physical_bone.get_rid(), torque * _delta)
-
 			var dir_to_target = (target_point - bone_pivot)
-			var max_impulse = bone["length"]
-			var magnitude = dir_to_target.length() * _delta
+			var magnitude = dir_to_target.length() * _delta * 350
 			var direction = dir_to_target.normalized()
-			var final = direction * min(magnitude, max_impulse)
+			var final = direction * magnitude
 			# physical_bone.global_position = actual_from
 			# physical_bone.global_transform = new_transform
-			# physical_bone.apply_impulse(final)
+			physical_bone.rest_forward = (skeleton.global_transform * skeleton.get_bone_global_rest(bone["idx"])).basis.y
+			physical_bone.apply_impulse(final)
 			# PhysicsServer3D.body_add_constant_force(phys_bone.get_rid(), Vector3.UP)
 		
 		# skeleton.set_bone_global_pose(bone["idx"], new_transform)

@@ -122,7 +122,7 @@ editor_preview = true
 root_stiffness = 1.0
 root_pitch = -0.31
 bone_weight = 0.004
-stiffness = 0.221
+stiffness = 1.0
 simulator = NodePath("../PhysicalBoneSimulator3D")
 metadata/_custom_type_script = "uid://dli3utnpqjlhe"
 
@@ -197,30 +197,52 @@ metadata/_custom_type_script = "uid://4mlml6ysrb1b"
 script = ExtResource("5_4c5uq")
 
 [node name="Physical Bone Root" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="0"]
-transform = Transform3D(1, -1.34045e-11, -7.53213e-13, 1.22894e-11, 0.891342, 0.453333, -5.40533e-12, -0.453333, 0.891342, -2.34007e-10, 0.264713, 0.520258)
+transform = Transform3D(1, -1.34045e-11, -7.53214e-13, 1.22894e-11, 0.891342, 0.453333, -5.40532e-12, -0.453333, 0.891342, -2.34007e-10, 0.264713, 0.520258)
 collision_layer = 0
 axis_lock_angular_x = true
 axis_lock_angular_y = true
 axis_lock_angular_z = true
 joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, 2.34472e-10, -0.000101062, 0.619257)
 joint_rotation = Vector3(0, 1.5708, 0)
-body_offset = Transform3D(1, -1.34045e-11, -7.53213e-13, -7.53201e-13, 8.9407e-07, -1, 1.34045e-11, 1, 8.9407e-07, -2.34007e-10, 0.619257, 0.000100508)
+body_offset = Transform3D(1, -1.34045e-11, -7.53214e-13, -7.53201e-13, 8.9407e-07, -1, 1.34045e-11, 1, 8.9407e-07, -2.34007e-10, 0.619257, 0.000100508)
 bone_name = "Root"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D/Physical Bone Root" index="0"]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 4.65661e-10, -0.428415)
 shape = SubResource("CapsuleShape3D_mwo1l")
 
-[node name="Physical Bone Tail_013" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="1"]
-transform = Transform3D(0.999587, -0.0187955, 0.0217493, -0.0127561, 0.388004, 0.921569, -0.0257601, -0.921466, 0.387604, 0.0260052, -11.8126, -4.12045)
+[node name="Physical Bone Tail_014" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="1"]
+transform = Transform3D(0.999502, -0.0205202, 0.0239614, -0.0146189, 0.371797, 0.928199, -0.0279556, -0.928087, 0.371312, 0.00841991, -12.6218, -4.45585)
 collision_layer = 0
 joint_type = 2
-joint_offset = Transform3D(-3.61998e-06, 0, 0.999997, 0, 0.999998, 0, -0.999998, 0, -3.61998e-06, -0.000434537, 0.000608992, 0.138533)
+joint_offset = Transform3D(-3.61998e-06, 0, 0.999997, 0, 0.999998, 0, -0.999998, 0, -3.61998e-06, -0.000438873, 0.000607426, 0.0265312)
 joint_rotation = Vector3(0, 1.5708, 0)
-body_offset = Transform3D(0.999984, -0.00540003, 0.00148627, 0.00146384, -0.00415817, -0.999991, 0.00540615, 0.999977, -0.00415006, 0.000231922, 0.138535, -3.17097e-05)
+body_offset = Transform3D(0.999984, -0.00538527, 0.00149809, 0.00147573, -0.00415748, -0.999991, 0.00539143, 0.999977, -0.00414941, 0.000402391, 0.0265341, -0.000494957)
+mass = 10.0
+bone_name = "Tail.014"
+joint_constraints/swing_span = 90.0
+joint_constraints/twist_span = 0.0
+joint_constraints/bias = 0.3
+joint_constraints/softness = 0.8
+joint_constraints/relaxation = 1.0
+script = ExtResource("5_mwo1l")
+metadata/_custom_type_script = "uid://dtmsyoqp1rv33"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D/Physical Bone Tail_014" index="0"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 4.65662e-10, 0.00185888, -0.387078)
+shape = SubResource("CapsuleShape3D_gwsv7")
+
+[node name="Physical Bone Tail_013" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="2"]
+transform = Transform3D(0.999587, -0.0187955, 0.0217493, -0.0127561, 0.388004, 0.921569, -0.0257602, -0.921466, 0.387604, 0.0260052, -11.8126, -4.12045)
+collision_layer = 0
+joint_type = 2
+joint_offset = Transform3D(-3.61998e-06, 0, 0.999997, 0, 0.999998, 0, -0.999998, 0, -3.61998e-06, -0.000434539, 0.000608976, 0.138533)
+joint_rotation = Vector3(0, 1.5708, 0)
+body_offset = Transform3D(0.999985, -0.00540005, 0.00148628, 0.00146385, -0.00415802, -0.999991, 0.00540617, 0.999977, -0.00414994, 0.000231922, 0.138535, -3.17097e-05)
+mass = 10.0
 bone_name = "Tail.013"
-joint_constraints/swing_span = 15.0
-joint_constraints/twist_span = 1.0
+joint_constraints/swing_span = 90.0
+joint_constraints/twist_span = 0.0
 joint_constraints/bias = 0.3
 joint_constraints/softness = 0.8
 joint_constraints/relaxation = 1.0
@@ -231,16 +253,17 @@ metadata/_custom_type_script = "uid://dtmsyoqp1rv33"
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 4.65662e-10, 0.00185888, -0.387078)
 shape = SubResource("CapsuleShape3D_gwsv7")
 
-[node name="Physical Bone Tail_012" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="2"]
+[node name="Physical Bone Tail_012" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="3"]
 transform = Transform3D(0.999678, -0.0165297, 0.0192444, -0.0118762, 0.365393, 0.930778, -0.0224172, -0.930707, 0.365079, 0.0418432, -10.9587, -3.78403)
 collision_layer = 0
 joint_type = 2
-joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -0.000263926, 0.00074143, 0.520091)
+joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -0.000263928, 0.000741446, 0.520091)
 joint_rotation = Vector3(0, 1.5708, 0)
-body_offset = Transform3D(0.999989, -0.00446941, 0.0015236, 0.00151616, -0.0016717, -0.999998, 0.00447195, 0.999989, -0.00166488, -0.000525177, 0.520092, 0.000125647)
+body_offset = Transform3D(0.999989, -0.00446942, 0.00152361, 0.00151616, -0.00167173, -0.999998, 0.00447195, 0.999989, -0.00166491, -0.000525177, 0.520092, 0.000125647)
+mass = 10.0
 bone_name = "Tail.012"
-joint_constraints/swing_span = 15.0
-joint_constraints/twist_span = 1.0
+joint_constraints/swing_span = 90.0
+joint_constraints/twist_span = 0.0
 joint_constraints/bias = 0.3
 joint_constraints/softness = 0.8
 joint_constraints/relaxation = 1.0
@@ -251,16 +274,17 @@ metadata/_custom_type_script = "uid://dtmsyoqp1rv33"
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 1.91358e-09, -0.0466186, -0.105335)
 shape = SubResource("CapsuleShape3D_2lw3i")
 
-[node name="Physical Bone Tail_011" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="3"]
+[node name="Physical Bone Tail_011" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="4"]
 transform = Transform3D(0.99976, -0.013345, 0.0173743, -0.0108948, 0.385191, 0.922773, -0.0190068, -0.922741, 0.384953, 0.0589405, -9.95815, -3.38134)
 collision_layer = 0
 joint_type = 2
-joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -6.93562e-06, 0.000399183, 0.504337)
+joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -6.96422e-06, 0.00039966, 0.504336)
 joint_rotation = Vector3(0, 1.5708, 0)
-body_offset = Transform3D(0.999993, -0.0032527, 0.00219405, 0.0021876, -0.00199005, -0.999996, 0.00325705, 0.999993, -0.00198275, -0.0010983, 0.504335, 0.000600815)
+body_offset = Transform3D(0.999993, -0.0032527, 0.00219405, 0.0021876, -0.00199005, -0.999996, 0.00325705, 0.999993, -0.00198275, -0.00109828, 0.504335, 0.000600338)
+mass = 10.0
 bone_name = "Tail.011"
-joint_constraints/swing_span = 15.0
-joint_constraints/twist_span = 1.0
+joint_constraints/swing_span = 90.0
+joint_constraints/twist_span = 0.0
 joint_constraints/bias = 0.3
 joint_constraints/softness = 0.8
 joint_constraints/relaxation = 1.0
@@ -271,16 +295,17 @@ metadata/_custom_type_script = "uid://dtmsyoqp1rv33"
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 1.45519e-11, -0.0478552, -0.00943398)
 shape = SubResource("CapsuleShape3D_pjteb")
 
-[node name="Physical Bone Tail_010" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="4"]
-transform = Transform3D(0.999873, -0.010922, 0.0115849, -0.00713903, 0.342827, 0.939372, -0.0142314, -0.939335, 0.342705, 0.0720415, -8.99223, -3.00083)
+[node name="Physical Bone Tail_010" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="5"]
+transform = Transform3D(0.999873, -0.010922, 0.0115848, -0.00713896, 0.342827, 0.939371, -0.0142314, -0.939335, 0.342706, 0.0720415, -8.99223, -3.00083)
 collision_layer = 0
 joint_type = 2
-joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, 0.000313321, 0.00318462, 0.584544)
+joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, 0.000313376, 0.00318471, 0.584544)
 joint_rotation = Vector3(0, 1.5708, 0)
-body_offset = Transform3D(0.999992, -0.00379026, 0.00139756, 0.00140003, 0.000646293, -0.999999, 0.00378935, 0.999993, 0.000651717, -0.00111818, 0.584541, -0.00356674)
+body_offset = Transform3D(0.999992, -0.00379022, 0.00139746, 0.00139994, 0.000646114, -0.999999, 0.00378931, 0.999993, 0.000651568, -0.00111818, 0.584541, -0.00356674)
+mass = 10.0
 bone_name = "Tail.010"
-joint_constraints/swing_span = 15.0
-joint_constraints/twist_span = 1.0
+joint_constraints/swing_span = 90.0
+joint_constraints/twist_span = 0.0
 joint_constraints/bias = 0.3
 joint_constraints/softness = 0.8
 joint_constraints/relaxation = 1.0
@@ -291,16 +316,17 @@ metadata/_custom_type_script = "uid://dtmsyoqp1rv33"
 transform = Transform3D(1, 0, 0, 0, 0.0828952, 0.996558, 0, -0.996558, 0.0828952, 3.49602e-07, -0.069678, 0.0873845)
 shape = SubResource("CapsuleShape3D_8stgb")
 
-[node name="Physical Bone Tail_009" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="5"]
-transform = Transform3D(0.999949, -0.00694546, 0.00734575, -0.00442836, 0.352269, 0.935888, -0.00908786, -0.935873, 0.35222, 0.0808712, -7.96461, -2.61469)
+[node name="Physical Bone Tail_009" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="6"]
+transform = Transform3D(0.999949, -0.00694546, 0.00734576, -0.00442836, 0.352269, 0.935888, -0.00908786, -0.935873, 0.35222, 0.0808712, -7.96461, -2.61469)
 collision_layer = 0
 joint_type = 2
-joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -0.000133717, 0.00931897, 0.497111)
+joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -0.000133719, 0.00931897, 0.497111)
 joint_rotation = Vector3(0, 1.5708, 0)
 body_offset = Transform3D(0.999992, -0.00336257, 0.00216464, 0.00216206, -0.000773519, -0.999998, 0.00336424, 0.999994, -0.000766158, -0.000911012, 0.497117, -0.0089376)
+mass = 10.0
 bone_name = "Tail.009"
-joint_constraints/swing_span = 15.0
-joint_constraints/twist_span = 1.0
+joint_constraints/swing_span = 90.0
+joint_constraints/twist_span = 0.0
 joint_constraints/bias = 0.3
 joint_constraints/softness = 0.8
 joint_constraints/relaxation = 1.0
@@ -311,16 +337,17 @@ metadata/_custom_type_script = "uid://dtmsyoqp1rv33"
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -1.9245e-09, -0.154323, -3.72529e-09)
 shape = SubResource("CapsuleShape3D_ve5iw")
 
-[node name="Physical Bone Tail_008" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="6"]
-transform = Transform3D(0.999993, -0.00314721, 0.00208114, -0.000804065, 0.36115, 0.932508, -0.0036864, -0.932503, 0.361145, 0.0832187, -6.91299, -2.22521)
+[node name="Physical Bone Tail_008" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="7"]
+transform = Transform3D(0.999993, -0.0031472, 0.00208113, -0.000804068, 0.36115, 0.932508, -0.00368639, -0.932503, 0.361145, 0.0831006, -6.91299, -2.2252)
 collision_layer = 0
 joint_type = 2
-joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, 0.000835992, 0.00402314, 0.486755)
+joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, 0.000954171, 0.00402662, 0.486754)
 joint_rotation = Vector3(0, 1.5708, 0)
-body_offset = Transform3D(0.999996, -0.00269777, 0.00142091, 0.00140495, -0.00590932, -0.999982, 0.00270611, 0.999979, -0.00590539, -0.00151677, 0.486769, -0.00115085)
+body_offset = Transform3D(0.999996, -0.00269775, 0.0014209, 0.00140495, -0.00590932, -0.999982, 0.0027061, 0.999979, -0.00590536, -0.00163493, 0.486767, -0.00115466)
+mass = 10.0
 bone_name = "Tail.008"
-joint_constraints/swing_span = 15.0
-joint_constraints/twist_span = 1.0
+joint_constraints/swing_span = 90.0
+joint_constraints/twist_span = 0.0
 joint_constraints/bias = 0.3
 joint_constraints/softness = 0.8
 joint_constraints/relaxation = 1.0
@@ -331,16 +358,17 @@ metadata/_custom_type_script = "uid://dtmsyoqp1rv33"
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 2.47383e-10, -0.256006, 7.45058e-09)
 shape = SubResource("CapsuleShape3D_sjop0")
 
-[node name="Physical Bone Tail_007" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="7"]
-transform = Transform3D(0.999966, 0.0052965, -0.00626189, 0.00385234, 0.370709, 0.928741, 0.00724042, -0.928734, 0.370676, 0.077623, -5.85511, -1.80831)
+[node name="Physical Bone Tail_007" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="8"]
+transform = Transform3D(0.999966, 0.00529648, -0.00626213, 0.00385257, 0.370709, 0.928741, 0.00724049, -0.928734, 0.370676, 0.077623, -5.85511, -1.80831)
 collision_layer = 0
 joint_type = 2
-joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, 1.62314e-05, 0.00415842, 0.497746)
+joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, 1.63515e-05, 0.00415842, 0.497746)
 joint_rotation = Vector3(0, 1.5708, 0)
-body_offset = Transform3D(0.999996, -0.000906284, 0.00289303, 0.00289298, -5.50747e-05, -0.999996, 0.000906439, 1, -5.23329e-05, -0.00145246, 0.497744, -0.00413239)
+body_offset = Transform3D(0.999996, -0.000906304, 0.00289279, 0.00289274, -5.50747e-05, -0.999996, 0.00090646, 1, -5.23329e-05, -0.00145246, 0.497744, -0.00413239)
+mass = 10.0
 bone_name = "Tail.007"
-joint_constraints/swing_span = 15.0
-joint_constraints/twist_span = 1.0
+joint_constraints/swing_span = 90.0
+joint_constraints/twist_span = 0.0
 joint_constraints/bias = 0.3
 joint_constraints/softness = 0.8
 joint_constraints/relaxation = 1.0
@@ -351,16 +379,17 @@ metadata/_custom_type_script = "uid://dtmsyoqp1rv33"
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -4.19095e-09, -0.339405, -1.49012e-08)
 shape = SubResource("CapsuleShape3D_hix3m")
 
-[node name="Physical Bone Tail_006" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="8"]
-transform = Transform3D(0.999946, 0.00519283, -0.00898314, 0.00670364, 0.337499, 0.941302, 0.00791982, -0.941312, 0.337446, 0.0691256, -4.98816, -1.47973)
+[node name="Physical Bone Tail_006" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="9"]
+transform = Transform3D(0.999946, 0.00519283, -0.00898315, 0.00670364, 0.337499, 0.941302, 0.00791982, -0.941312, 0.337446, 0.0691256, -4.98816, -1.47973)
 collision_layer = 0
 joint_type = 2
-joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -5.82541e-05, -0.000341116, 0.414657)
+joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -5.82745e-05, -0.000341846, 0.414658)
 joint_rotation = Vector3(0, 1.5708, 0)
-body_offset = Transform3D(0.999995, -0.00249293, 0.00188814, 0.00189866, 0.00422579, -0.99999, 0.00248492, 0.999988, 0.00423059, -0.000725526, 0.414655, -0.00141299)
+body_offset = Transform3D(0.999995, -0.00249293, 0.00188813, 0.00189866, 0.00422579, -0.99999, 0.00248492, 0.999988, 0.00423062, -0.000725508, 0.414655, -0.00141227)
+mass = 10.0
 bone_name = "Tail.006"
-joint_constraints/swing_span = 15.0
-joint_constraints/twist_span = 1.0
+joint_constraints/swing_span = 90.0
+joint_constraints/twist_span = 0.0
 joint_constraints/bias = 0.3
 joint_constraints/softness = 0.8
 joint_constraints/relaxation = 1.0
@@ -371,16 +400,17 @@ metadata/_custom_type_script = "uid://dtmsyoqp1rv33"
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -4.19095e-09, -0.467269, -2.98023e-08)
 shape = SubResource("CapsuleShape3D_tob4e")
 
-[node name="Physical Bone Tail_005" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="9"]
-transform = Transform3D(0.999816, 0.0157184, 0.0109679, 0.010926, -0.937562, 0.347648, 0.0157475, -0.347464, -0.937561, 0.0588573, -4.20242, -1.19215)
+[node name="Physical Bone Tail_005" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="10"]
+transform = Transform3D(0.999816, 0.0157184, 0.0109679, 0.010926, -0.937562, 0.347647, 0.0157475, -0.347463, -0.937561, 0.0588573, -4.20242, -1.19215)
 collision_layer = 0
 joint_type = 2
-joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -0.000161525, -0.529538, 0.00039906)
+joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -0.000161526, -0.529538, 0.000398927)
 joint_rotation = Vector3(0, 1.5708, 0)
-body_offset = Transform3D(1, -1.98651e-06, 2.60295e-05, 1.97161e-06, 1, 0.000311822, -2.6033e-05, -0.000311881, 1, 0.000160463, 0.529538, -0.000564218)
+body_offset = Transform3D(1, -1.98744e-06, 2.60295e-05, 1.97161e-06, 1, 0.000312269, -2.6033e-05, -0.000312358, 1, 0.000160463, 0.529538, -0.000564337)
+mass = 10.0
 bone_name = "Tail.005"
-joint_constraints/swing_span = 15.0
-joint_constraints/twist_span = 1.0
+joint_constraints/swing_span = 90.0
+joint_constraints/twist_span = 0.0
 joint_constraints/bias = 0.3
 joint_constraints/softness = 0.8
 joint_constraints/relaxation = 1.0
@@ -391,16 +421,17 @@ metadata/_custom_type_script = "uid://dtmsyoqp1rv33"
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 3.95812e-08, -0.0595639, -0.568482)
 shape = SubResource("CapsuleShape3D_wecc2")
 
-[node name="Physical Bone Tail_004" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="10"]
-transform = Transform3D(0.999821, 0.0120021, -0.0146439, 0.00969668, 0.339718, 0.940477, 0.0162625, -0.940451, 0.339541, 0.036881, -3.09347, -0.784748)
+[node name="Physical Bone Tail_004" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="11"]
+transform = Transform3D(0.999821, 0.0120021, -0.0146439, 0.0096967, 0.339718, 0.940477, 0.0162625, -0.940451, 0.339541, 0.0368805, -3.09345, -0.784736)
 collision_layer = 0
 joint_type = 2
-joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, 3.52909e-05, 0.00111697, 0.412486)
+joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, 3.53937e-05, 0.00112147, 0.412464)
 joint_rotation = Vector3(0, 1.5708, 0)
-body_offset = Transform3D(0.999993, -0.000856711, 0.00364449, 0.00364567, 0.0013901, -0.999993, 0.000851636, 0.999999, 0.00139326, -0.00153764, 0.412481, -0.0016917)
+body_offset = Transform3D(0.999993, -0.000856677, 0.00364446, 0.00364564, 0.0013901, -0.999993, 0.000851602, 0.999999, 0.00139326, -0.00153764, 0.412459, -0.00169617)
+mass = 10.0
 bone_name = "Tail.004"
-joint_constraints/swing_span = 15.0
-joint_constraints/twist_span = 1.0
+joint_constraints/swing_span = 90.0
+joint_constraints/twist_span = 0.0
 joint_constraints/bias = 0.3
 joint_constraints/softness = 0.8
 joint_constraints/relaxation = 1.0
@@ -411,16 +442,17 @@ metadata/_custom_type_script = "uid://dtmsyoqp1rv33"
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 4.65661e-10, -0.712774, 3.72529e-09)
 shape = SubResource("CapsuleShape3D_oclpe")
 
-[node name="Physical Bone Tail_003" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="11"]
-transform = Transform3D(0.999665, 0.0157714, -0.0205445, 0.0146734, 0.308774, 0.951022, 0.0213425, -0.951005, 0.308439, 0.0959619, -2.20951, -0.515906)
+[node name="Physical Bone Tail_003" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="12"]
+transform = Transform3D(0.999665, 0.0157714, -0.0205445, 0.0146734, 0.308774, 0.951022, 0.0213426, -0.951005, 0.308439, 0.0959619, -2.20951, -0.515906)
 collision_layer = 0
 joint_type = 2
 joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -0.0768715, -0.0303667, 0.368202)
 joint_rotation = Vector3(0, 1.5708, 0)
-body_offset = Transform3D(0.999998, -0.000627004, 0.00202331, 0.00202314, -0.000257611, -0.999998, 0.000627516, 1, -0.00025627, 0.0761073, 0.368349, 0.0305093)
+body_offset = Transform3D(0.999998, -0.000626978, 0.0020233, 0.00202313, -0.000257611, -0.999998, 0.000627491, 1, -0.0002563, 0.0761073, 0.368349, 0.0305093)
+mass = 10.0
 bone_name = "Tail.003"
-joint_constraints/swing_span = 15.0
-joint_constraints/twist_span = 1.0
+joint_constraints/swing_span = 90.0
+joint_constraints/twist_span = 0.0
 joint_constraints/bias = 0.3
 joint_constraints/softness = 0.8
 joint_constraints/relaxation = 1.0
@@ -431,16 +463,17 @@ metadata/_custom_type_script = "uid://dtmsyoqp1rv33"
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -1.86265e-09, -0.76803, -6.70552e-08)
 shape = SubResource("CapsuleShape3D_21qy4")
 
-[node name="Physical Bone Tail_002" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="12"]
-transform = Transform3D(0.999916, 0.00748702, -0.0105485, 0.00729581, 0.346965, 0.93785, 0.0106817, -0.937848, 0.346881, 0.00619704, -1.41459, -0.208086)
+[node name="Physical Bone Tail_002" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="13"]
+transform = Transform3D(0.999916, 0.00748702, -0.0105485, 0.00729581, 0.346965, 0.93785, 0.0106817, -0.937848, 0.346881, 0.00620154, -1.41459, -0.20807)
 collision_layer = 0
 joint_type = 2
-joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -0.000545095, -0.0015258, 0.534725)
+joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -0.000549773, -0.00151066, 0.534719)
 joint_rotation = Vector3(0, 1.5708, 0)
-body_offset = Transform3D(1, -7.49743e-05, 0.000308854, 0.000308865, 0.000232726, -1, 7.49002e-05, 1, 0.000232846, 0.000379829, 0.534726, 0.00140134)
+body_offset = Transform3D(1, -7.49743e-05, 0.000308854, 0.000308865, 0.000232726, -1, 7.49002e-05, 1, 0.000232846, 0.00038451, 0.53472, 0.0013862)
+mass = 10.0
 bone_name = "Tail.002"
-joint_constraints/swing_span = 15.0
-joint_constraints/twist_span = 1.0
+joint_constraints/swing_span = 90.0
+joint_constraints/twist_span = 0.0
 joint_constraints/bias = 0.3
 joint_constraints/softness = 0.8
 joint_constraints/relaxation = 1.0
@@ -451,16 +484,17 @@ metadata/_custom_type_script = "uid://dtmsyoqp1rv33"
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -6.98492e-10, -0.620083, -2.98023e-08)
 shape = SubResource("CapsuleShape3D_euuxu")
 
-[node name="Physical Bone Tail_001" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="13"]
+[node name="Physical Bone Tail_001" type="PhysicalBone3D" parent="Armature/Skeleton3D/PhysicalBoneSimulator3D" index="14"]
 transform = Transform3D(1, 2e-08, -9.77251e-08, 2.2259e-08, -0.999732, 0.0231709, -9.72354e-08, -0.0231709, -0.999732, 2.92152e-08, -0.500334, -0.0115556)
 collision_layer = 0
 joint_type = 2
-joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -1.92019e-08, -0.500467, 4.05538e-05)
+joint_offset = Transform3D(-3.61999e-06, 0, 1, 0, 1, 0, -1, 0, -3.61999e-06, -1.92019e-08, -0.500467, 4.0551e-05)
 joint_rotation = Vector3(0, 1.5708, 0)
-body_offset = Transform3D(1, 2e-08, -9.77251e-08, -2e-08, 1, -4.35859e-07, 9.77251e-08, 4.32134e-07, 1, 2.92152e-08, 0.500467, -4.03376e-05)
+body_offset = Transform3D(1, 2e-08, -9.77251e-08, -2e-08, 1, -4.35859e-07, 9.77251e-08, 4.32134e-07, 1, 2.92152e-08, 0.500467, -4.03348e-05)
+mass = 10.0
 bone_name = "Tail.001"
-joint_constraints/swing_span = 15.0
-joint_constraints/twist_span = 1.0
+joint_constraints/swing_span = 90.0
+joint_constraints/twist_span = 0.0
 joint_constraints/bias = 0.3
 joint_constraints/softness = 0.8
 joint_constraints/relaxation = 1.0
