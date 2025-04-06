@@ -87,8 +87,10 @@ func _physics_process(_delta: float) -> void:
 			push_warning("[IKBoneController3D] Bone '%s' (depth = %d) has no parent. Depth too high?" % [skeleton.get_bone_name(current_bone), i])
 			return
 		
+		var basis = skeleton.get_bone_global_pose(current_bone).basis
+
 		var from = skeleton.get_bone_global_pose(current_bone).origin
-		var to = current_to
+		var to = from + basis.y if bones.is_empty() else current_to
 		# If it's the first bone, length is not available
 		var length = 0.1 if bones.is_empty() else to.distance_to(from)
 		var parent_basis = skeleton.get_bone_global_pose(parent).basis
@@ -112,9 +114,10 @@ func _physics_process(_delta: float) -> void:
 			"stiffness": clamp(stiffness + stiffness_per_bone * i, 0, 1),
 			# "gravity": -1,
 			# "stiffness": 0.2 + 0.4 * i,
+			"basis": basis,
 			"parent_basis": parent_basis,
 			"rest_basis": rest_basis,
-			"node": node,
+			"data_node": node,
 		}
 
 		if i == depth - 1:
@@ -165,10 +168,16 @@ func fabrik_phase1():
 
 	for i in range(depth):
 		var bone = bones[i]
+		# Apply collision detection on the target position relative to the bone’s current “from” position.
+		bone["to"] = move_and_collide(bone["from"], bone["to"], target_pos, bone["data_node"])
 		# bone["to"] = target_pos
 
-		bone["from"] = apply_bias(bone["to"], bone["from"], bone["length"], bone["parent_basis"].y, bone["stiffness"])
-		bone["from"] = apply_bias(bone["to"], bone["from"], bone["length"], -gravity_vector, bone["gravity"])
+		var desired_from = bone["from"]
+		# desired_from = apply_bias(bone["to"], desired_from, bone["length"], bone["parent_basis"].y, bone["stiffness"])
+		# desired_from = apply_bias(bone["to"], desired_from, bone["length"], -gravity_vector, bone["gravity"])
+
+		# Preserve bone length using the collision-adjusted target.
+		bone["from"] = apply_bias(bone["to"], desired_from, bone["length"], Vector3.ZERO, 0.0)
 
 		target_pos = bone["from"]
 
@@ -179,8 +188,15 @@ func fabrik_phase2():
 		var bone = bones[depth - i - 1]
 		bone["from"] = source_pos
 
-		bone["to"] = apply_bias(bone["from"], bone["to"], bone["length"], bone["parent_basis"].y, bone["stiffness"])
-		bone["to"] = apply_bias(bone["from"], bone["to"], bone["length"], -gravity_vector, bone["gravity"])
+		var desired_to = bone["to"]
+		# desired_to = apply_bias(bone["from"], desired_to, bone["length"], bone["parent_basis"].y, bone["stiffness"])
+		# desired_to = apply_bias(bone["from"], desired_to, bone["length"], -gravity_vector, bone["gravity"])
+
+		# Integrate collision detection to adjust the desired target.
+		# desired_to = move_and_collide(bone["from"], bone["to"], desired_to, bone["data_node"])
+		
+		# Preserve bone length using the collision-adjusted desired target.
+		bone["to"] = apply_bias(bone["from"], desired_to, bone["length"], Vector3.ZERO, 0.0)
 
 		source_pos = bone["to"]
 
@@ -223,19 +239,58 @@ func fabrik_phase2():
 # 		"yaw": euler.y,
 	# }
 
-func apply_collisions() -> Vector3:
-	if bone["node"]:
-		var body: RigidBody3D = bone["node"].get_child(0)
+# No, it's not the real one ^^
+func move_and_collide(current_from: Vector3, current_to: Vector3, target_to: Vector3, data_node: BoneAttachment3D) -> Vector3:
+	if not data_node:
+		return target_to
 
-		var params = PhysicsTestMotionParameters3D.new()
-		params.from = skeleton.global_transform * new_transform
-		# print(params.from.origin)
-		params.motion = Vector3.UP
-		# params.to = new_transform.origin
-		var result: PhysicsTestMotionResult3D = PhysicsTestMotionResult3D.new()
-		PhysicsServer3D.body_test_motion(body.get_rid(), params, result)
-		if result.get_collision_count() > 0:
-			print(result.get_collision_count())
+	var safe_point = get_safe_point(current_from, current_to, target_to, data_node)
+	return safe_point
+
+func get_safe_point(current_from: Vector3, current_to: Vector3, target_to: Vector3, data_node: BoneAttachment3D) -> Vector3:
+	if not data_node:
+		return target_to
+
+	var body: RigidBody3D = data_node.get_child(0)
+	var shape: CollisionShape3D = body.get_child(0)
+
+	var new_transform: Transform3D = data_node.global_transform.looking_at(skeleton.global_transform * target_to, Vector3.UP)
+
+	# new_transform.origin = new_transform * shape.position
+
+	new_transform.basis = new_transform.basis.rotated(new_transform.basis.x, PI / 2)
+	new_transform.origin += new_transform.basis * -shape.position
+
+	# print(new_transform.origin)
+
+	# var params = PhysicsTestMotionParameters3D.new()
+	# params.from = body.global_transform
+	# params.motion = skeleton.global_transform * target_pos - skeleton.global_transform * current_pos
+	# params.motion = skeleton.global_transform
+	# var result: PhysicsTestMotionResult3D = PhysicsTestMotionResult3D.new()
+	# PhysicsServer3D.body_test_motion(body.get_rid(), params, result)
+	# if result.get_collision_count() > 0:
+		# print(result.get_collision_safe_fraction())
+		# return current_pos + params.motion * result.get_collision_safe_fraction()
+	
+	var query = PhysicsShapeQueryParameters3D.new()
+	query.shape = shape.shape
+	query.transform = new_transform
+	var result = get_world_3d().direct_space_state.intersect_shape(query)
+	# print(result)
+	if result.size() > 0:
+		return current_to
+		
+		var collision = result[0]
+		var collision_point = collision.position
+		var collision_normal = collision.normal
+		var safe_point = collision_point + collision_normal * 0.1
+
+		# print("Collision detected at: ", collision_point)
+		# print("Safe point: ", safe_point)
+		return safe_point
+
+	return target_to
 
 func apply_bias(original_from: Vector3, original_to: Vector3, length: float, bias_to: Vector3, influence: float) -> Vector3:
 	var desired_direction = (original_to - original_from).normalized()
