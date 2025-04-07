@@ -78,7 +78,7 @@ func _physics_process(_delta: float) -> void:
 	bones = []
 	var current_bone = bone_idx
 
-	var current_to = skeleton.global_transform.inverse() * get_child(0).global_position
+	var current_to = Vector3.ZERO
 
 	# TODO: No need to recalculate everything every frame
 	for i in range(depth):
@@ -87,12 +87,15 @@ func _physics_process(_delta: float) -> void:
 			push_warning("[IKBoneController3D] Bone '%s' (depth = %d) has no parent. Depth too high?" % [skeleton.get_bone_name(current_bone), i])
 			return
 		
-		var basis = skeleton.get_bone_global_pose(current_bone).basis
-
 		var from = skeleton.get_bone_global_pose(current_bone).origin
 		var to = from + basis.y if bones.is_empty() else current_to
 		# If it's the first bone, length is not available
-		var length = 0.1 if bones.is_empty() else to.distance_to(from)
+		var length = 1
+		if i > 0:
+			var rest_pose = skeleton.get_bone_global_rest(current_bone)
+			var child_rest_pose = skeleton.get_bone_global_rest(bones[i - 1]["idx"])
+			length = rest_pose.origin.distance_to(child_rest_pose.origin)
+
 		var parent_basis = skeleton.get_bone_global_pose(parent).basis
 		var rest_basis = skeleton.get_bone_global_rest(current_bone).basis
 
@@ -127,8 +130,7 @@ func _physics_process(_delta: float) -> void:
 		current_bone = parent
 		current_to = from
 
-	# TODO: Make this global down, not skeleton down
-	gravity_vector = Vector3.DOWN * skeleton.global_transform.inverse()
+	gravity_vector = skeleton.global_transform.inverse() * Vector3.DOWN
 
 	fabrik_phase1()
 	fabrik_phase2()
@@ -168,16 +170,18 @@ func fabrik_phase1():
 
 	for i in range(depth):
 		var bone = bones[i]
-		# Apply collision detection on the target position relative to the bone’s current “from” position.
-		bone["to"] = move_and_collide(bone["from"], bone["to"], target_pos, bone["data_node"])
-		# bone["to"] = target_pos
+		# var old_target = bone["to"]
+
+		bone["to"] = move_and_collide(bone["from"], bone["to"], target_pos, bone["length"], bone["data_node"])
 
 		var desired_from = bone["from"]
-		# desired_from = apply_bias(bone["to"], desired_from, bone["length"], bone["parent_basis"].y, bone["stiffness"])
-		# desired_from = apply_bias(bone["to"], desired_from, bone["length"], -gravity_vector, bone["gravity"])
+		desired_from = apply_bias(bone["to"], desired_from, bone["length"], bone["parent_basis"].y, bone["stiffness"])
+		desired_from = apply_bias(bone["to"], desired_from, bone["length"], gravity_vector, bone["gravity"])
+
+		var safe_from = move_and_collide(bone["to"], bone["from"], desired_from, bone["length"], bone["data_node"])
 
 		# Preserve bone length using the collision-adjusted target.
-		bone["from"] = apply_bias(bone["to"], desired_from, bone["length"], Vector3.ZERO, 0.0)
+		bone["from"] = apply_bias(bone["to"], safe_from, bone["length"], Vector3.ZERO, 0.0)
 
 		target_pos = bone["from"]
 
@@ -189,16 +193,20 @@ func fabrik_phase2():
 		bone["from"] = source_pos
 
 		var desired_to = bone["to"]
-		# desired_to = apply_bias(bone["from"], desired_to, bone["length"], bone["parent_basis"].y, bone["stiffness"])
-		# desired_to = apply_bias(bone["from"], desired_to, bone["length"], -gravity_vector, bone["gravity"])
+		desired_to = apply_bias(bone["from"], desired_to, bone["length"], bone["parent_basis"].y, bone["stiffness"])
+		desired_to = apply_bias(bone["from"], desired_to, bone["length"], gravity_vector, bone["gravity"])
 
-		# Integrate collision detection to adjust the desired target.
-		# desired_to = move_and_collide(bone["from"], bone["to"], desired_to, bone["data_node"])
-		
+		var actual_bone = skeleton.get_bone_global_pose(bone["idx"])
+		var actual_to = actual_bone.origin + actual_bone.basis.y * bone["length"]
+		# desired_to = move_and_collide(bone["from"], actual_to, desired_to, bone["length"], bone["data_node"])
+
+		desired_to = move_and_collide(bone["from"], actual_to, desired_to, bone["length"], bone["data_node"])
+
 		# Preserve bone length using the collision-adjusted desired target.
 		bone["to"] = apply_bias(bone["from"], desired_to, bone["length"], Vector3.ZERO, 0.0)
 
 		source_pos = bone["to"]
+
 
 # func apply_rot_constraints():
 # 		# Rotation limit in every axis (yaw, pitch, roll)
@@ -239,15 +247,66 @@ func fabrik_phase2():
 # 		"yaw": euler.y,
 	# }
 
-# No, it's not the real one ^^
-func move_and_collide(current_from: Vector3, current_to: Vector3, target_to: Vector3, data_node: BoneAttachment3D) -> Vector3:
-	if not data_node:
-		return target_to
+func move_and_collide(sample_origin: Vector3, from: Vector3, to: Vector3, length: float, data_node: BoneAttachment3D) -> Vector3:
+	return get_safe_point_for_line(sample_origin, from, to, length, data_node)
 
-	var safe_point = get_safe_point(current_from, current_to, target_to, data_node)
-	return safe_point
+	# var safe_point = get_safe_point_for_shape(current_from, current_to, target_to, data_node)
+	# return safe_point
 
-func get_safe_point(current_from: Vector3, current_to: Vector3, target_to: Vector3, data_node: BoneAttachment3D) -> Vector3:
+func get_safe_point_for_line(skeleton_sample_origin: Vector3, skeleton_from: Vector3, skeleton_to: Vector3, length: float, data_node: BoneAttachment3D) -> Vector3:
+	var sample_count = 100
+
+	var sample_origin = skeleton.global_transform * skeleton_sample_origin
+	var sample_start = skeleton.global_transform * skeleton_from
+	var sample_end = skeleton.global_transform * skeleton_to
+	var ray_length = length
+
+	var safe_point_found = false
+	var last_known_safe_point = null
+	for i in range(sample_count):
+		var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.new()
+		query.from = sample_origin
+		query.to = sample_start.lerp(sample_end, float(i) / sample_count)
+
+		# query.to = query.from.lerp(query.to, ray_length)
+
+		var result = get_world_3d().direct_space_state.intersect_ray(query)
+		if result.size() > 0:
+			if safe_point_found:
+				return skeleton.global_transform.inverse() * last_known_safe_point
+			else:
+				continue
+
+		safe_point_found = true
+		last_known_safe_point = query.to
+
+		# query.collision_mask = 0
+		# query.exclude = [data_node.get_rid()]
+
+	if safe_point_found:
+		return skeleton.global_transform.inverse() * last_known_safe_point
+
+	push_warning("No safe point found")
+	# return depenetrate(skeleton_sample_origin, skeleton_from, skeleton_to, length, data_node)
+	return skeleton_from
+
+func depenetrate(skeleton_sample_origin: Vector3, skeleton_from: Vector3, skeleton_to: Vector3, length: float, data_node: BoneAttachment3D) -> Vector3:
+	var sample_origin = skeleton.global_transform * skeleton_sample_origin
+	var sample_start = skeleton.global_transform * skeleton_from
+
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.new()
+	query.from = sample_origin
+	query.to = sample_start
+
+	var result = get_world_3d().direct_space_state.intersect_ray(query)
+	if result.size() == 0:
+		print(result)
+		return skeleton.global_transform.inverse() * result[0].position
+
+	push_warning("Falsy depenetration")
+	return sample_start
+
+func get_safe_point_for_shape(current_from: Vector3, current_to: Vector3, target_to: Vector3, data_node: BoneAttachment3D) -> Vector3:
 	if not data_node:
 		return target_to
 
