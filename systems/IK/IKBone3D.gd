@@ -8,6 +8,7 @@ var skeleton: Skeleton3D
 var bone_idx: int
 # IK chain may have at most 1 child even if the structure itself has more
 var child_bone: IKBone3D
+var parent_bone: IKBone3D
 # Parent bone is closer to the root than the current one
 var parent_bone_idx: int
 # Bone's pivot point
@@ -16,6 +17,10 @@ var origin: Vector3
 var target: Vector3
 # Bone's rest pose length
 var length: float
+# Whether the bone is locked for the remainder of the frame due to a collision
+var is_locked_origin: bool
+var is_locked_target: bool
+var locked_point: Vector3
 
 static func make(skeleton: Skeleton3D, bone_idx: int, child_idx: int) -> IKBone3D:
 	var bone = IKBone3D.new()
@@ -23,18 +28,14 @@ static func make(skeleton: Skeleton3D, bone_idx: int, child_idx: int) -> IKBone3
 	bone.bone_idx = bone_idx
 	bone.parent_bone_idx = skeleton.get_bone_parent(bone_idx)
 	bone.origin = skeleton.get_bone_global_pose(bone_idx).origin
-	bone.target = bone._get_target()
 	if child_idx != -1:
 		bone.length = skeleton.get_bone_global_rest(bone_idx).origin.distance_to(skeleton.get_bone_global_rest(child_idx).origin)
 	else:
 		bone.length = 1
 	return bone
 
-func _get_target() -> Vector3:
-	if child_bone:
-		return child_bone.origin
-	else:
-		return origin + skeleton.get_bone_global_pose(bone_idx).basis.y * length
+func target_forward() -> Vector3:
+	return origin + skeleton.get_bone_global_pose(bone_idx).basis.y * length
 
 func flush_prepare(data: BoneFlushData) -> BoneFlushData:
 	var new_transform = Transform3D(data.transform)

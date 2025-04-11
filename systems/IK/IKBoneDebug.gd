@@ -41,5 +41,5 @@ func print_bones(bones: Array[IKBone3D], color: Color):
 		debug_mesh.mesh.surface_set_color(color)
 		debug_mesh.mesh.surface_add_vertex(skeleton.global_transform * bone.origin)
 		debug_mesh.mesh.surface_set_color(color)
-		debug_mesh.mesh.surface_add_vertex(skeleton.global_transform * bone._get_target())
+		debug_mesh.mesh.surface_add_vertex(skeleton.global_transform * bone.target)
 		debug_mesh.mesh.surface_end()

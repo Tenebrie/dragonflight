@@ -72,13 +72,14 @@ func _process(_delta: float) -> void:
 		var bone_transform: Transform3D = skeleton.get_bone_global_pose(child.bone_idx)
 		child.global_position = bone_transform.origin * skeleton.global_transform.inverse()
 
+var d = 0
 func _physics_process(_delta: float) -> void:
 	if get_child_count() == 0 or not enabled or (not preview and Engine.is_editor_hint()) or not skeleton or depth == 0:
 		return
 
 	resolve_ik(_delta)
 
-func resolve_ik(_delta: float) -> void:
+func resolve_ik(delta: float) -> void:
 	var first_child: BoneAttachment3D = get_child(1)
 	var tip_bone_idx = first_child.bone_idx
 	if tip_bone_idx == -1:
@@ -99,10 +100,24 @@ func resolve_ik(_delta: float) -> void:
 
 	var debug_colors = [Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN]
 
-	resolve_fabrik(bones, source_pos, target_pos)
+	var iterations = 4
 
-	if bone_debug:
-		bone_debug.print_bones(bones, debug_colors[0])
+	for i in range(iterations):
+		BiasResolver.resolve(skeleton, bones, delta, iterations, gravity)
+		FabrikResolver.resolve(bones, source_pos, target_pos)
+		if bone_debug:
+			bone_debug.print_bones(bones, debug_colors[i * 2])
+		CollisionResolver.resolve(bones, target_pos)
+		if bone_debug:
+			bone_debug.print_bones(bones, debug_colors[i * 2 + 1])
+
+
+	# var obstacle_center = skeleton.global_transform.inverse() * Vector3(0, 8.0, -8.0)
+	# for i in range(bones.size()):
+		# bones[i].origin = do_quick_hack(bones[i].origin, obstacle_center, 4.0)
+	# FabrikResolver.reconnect(bones, source_pos, 0, bones.size())
+	# FabrikResolver.resolve(bones, source_pos, target_pos)
+	# CollisionResolver.resolve(bones, target_pos)
 
 	# Biases
 	# var desired_from = bone["from"]
@@ -110,6 +125,17 @@ func resolve_ik(_delta: float) -> void:
 	# desired_from = apply_bias(bone["to"], desired_from, bone["length"], gravity_vector, bone["gravity"])
 
 	apply_bones(bones)
+
+func do_quick_hack(joint_pos: Vector3, obstacle_center: Vector3, obstacle_radius: float, strength: float = 1.0) -> Vector3:
+	var offset = joint_pos - obstacle_center
+	var distance = offset.length()
+	var safe_distance = obstacle_radius + 0.1
+
+	if distance < safe_distance:
+		var repel_dir = offset.normalized()
+		var penetration = safe_distance - distance
+		return joint_pos + repel_dir * penetration * strength
+	return joint_pos
 
 func find_root_bone(tip_bone_idx: int) -> int:
 	var root_bone = tip_bone_idx
@@ -132,29 +158,133 @@ func collect_bones(tip_bone_idx: int) -> Array[IKBone3D]:
 		child_idx = bone.bone_idx
 		current_bone = bone.parent_bone_idx
 		bones.append(bone)
+		bone.target = bone.target_forward()
+
+	for i in range(depth - 1):
+		bones[i + 1].child_bone = bones[i]
+		bones[i].parent_bone = bones[i + 1]
 	return bones
 
-func resolve_fabrik(bones: Array[IKBone3D], root_pos: Vector3, target_pos: Vector3) -> void:
-	fabrik_phase1(bones, target_pos, 0, depth)
-	fabrik_phase2(bones, root_pos, 0, depth)
+class FabrikResolver:
+	static func resolve(bones: Array[IKBone3D], root_pos: Vector3, target_pos: Vector3) -> void:
+		_fabrik_phase1(bones, target_pos, 0, bones.size())
+		_fabrik_phase2(bones, root_pos, 0, bones.size())
 
-func fabrik_phase1(bones: Array[IKBone3D], target_pos: Vector3, from_index: int, to_index: int):
-	for i in range(from_index, to_index):
-		var bone = bones[i]
+	static func _fabrik_phase1(bones: Array[IKBone3D], target_pos: Vector3, from_index: int, to_index: int):
+		for i in range(from_index, to_index):
+			var bone = bones[i]
 
-		bone.target = target_pos
-		bone.origin = preserve_length(bone.target, bone.origin, bone.length)
+			if bone.is_locked_origin or bone.is_locked_target:
+				if i > from_index:
+					var next_bone = bones[i - 1]
+					next_bone.origin = bone.target
+					next_bone.target = _preserve_length(bone.target, next_bone.target, next_bone.length)
+				if i < to_index - 1:
+					var prev_bone = bones[i + 1]
+					prev_bone.target = bone.origin
+					prev_bone.origin = _preserve_length(bone.origin, prev_bone.origin, prev_bone.length)
+			else:
+				bone.target = target_pos
+				bone.origin = _preserve_length(bone.target, bone.origin, bone.length)
 
-		target_pos = bone.origin
+			target_pos = bone.origin
 
-func fabrik_phase2(bones: Array[IKBone3D], source_pos: Vector3, from_index: int, to_index: int):
-	for i in range(to_index - 1, from_index - 1, -1):
-		var bone = bones[i]
+	static func _fabrik_phase2(bones: Array[IKBone3D], source_pos: Vector3, from_index: int, to_index: int):
+		for i in range(to_index - 1, from_index - 1, -1):
+			var bone = bones[i]
 
-		bone.origin = source_pos
-		bone.target = preserve_length(bone.origin, bone.target, bone.length)
+			if bone.is_locked_origin or bone.is_locked_target:
+				if i > from_index:
+					var next_bone = bones[i - 1]
+					next_bone.origin = bone.target
+					next_bone.target = _preserve_length(bone.target, next_bone.target, next_bone.length)
+				if i < to_index - 1:
+					var prev_bone = bones[i + 1]
+					prev_bone.target = bone.origin
+					prev_bone.origin = _preserve_length(bone.origin, prev_bone.origin, prev_bone.length)
+			else:
+				bone.origin = source_pos
+				bone.target = _preserve_length(bone.origin, bone.target, bone.length)
 
-		source_pos = bone.target
+			source_pos = bone.target
+
+	static func _preserve_length(original_from: Vector3, original_to: Vector3, length: float) -> Vector3:
+		var dir = (original_to - original_from).normalized()
+		var target = original_from + dir * length
+
+		return target
+
+class BiasResolver:
+	static func resolve(skeleton: Skeleton3D, bones: Array[IKBone3D], _delta: float, iterations: int, gravity: float) -> void:
+		var gravity_this_iteration = 9.8 * gravity / iterations
+		var gravity_vector = (skeleton.global_transform.inverse() * Vector3.DOWN).normalized()
+		for i in range(bones.size()):
+			var bone = bones[i]
+			bone.origin = bone.origin + gravity_this_iteration * gravity_vector * _delta
+			bone.target = bone.target + gravity_this_iteration * gravity_vector * _delta
+
+class CollisionResolver:
+	static func resolve(bones: Array[IKBone3D], target_pos: Vector3) -> void:
+		bones.reverse()
+		for bone in bones:
+			_resolve_bone(bone)
+		for bone in bones:
+			_reconnect_bone(bone, target_pos)
+		bones.reverse()
+
+	static func _resolve_bone(desired: IKBone3D) -> void:
+		var current = desired.skeleton.get_bone_global_pose(desired.bone_idx)
+		var current_target = current.origin + current.basis.y * desired.length
+
+		var target_move_data = IKUtils.move_and_collide(desired.skeleton, current.origin, current_target, desired.target)
+		desired.target = target_move_data.point
+		if target_move_data.is_hit:
+			desired.is_locked_target = true
+
+		var origin_move_data = IKUtils.move_and_collide(desired.skeleton, desired.target, current.origin, desired.origin)
+		desired.origin = origin_move_data.point
+		if origin_move_data.is_hit:
+			desired.is_locked_origin = true
+
+	static func _reconnect_bone(bone: IKBone3D, target_pos: Vector3) -> void:
+		if not bone.is_locked_target and not bone.is_locked_origin:
+			var looking_at: Vector3
+			if bone.child_bone:
+				looking_at = bone.child_bone.origin
+			else:
+				looking_at = target_pos
+
+			var current = bone.skeleton.get_bone_global_pose(bone.bone_idx)
+			var forward = current.basis.y
+			var new_forward = (looking_at - bone.origin).normalized()
+
+			var target = bone.origin + forward * bone.length
+			var new_target = bone.origin + new_forward * bone.length
+
+			var solved_data = IKUtils.move_and_collide(bone.skeleton, bone.origin, target, new_target)
+
+			var solved_target = solved_data.point
+			# if not bone.is_locked_target:
+				# bone.target = solved_target
+			# if bone.child_bone and not bone.child_bone.is_locked_origin:
+				# bone.child_bone.origin = bone.target
+
+		# if bone.is_locked_origin && bone.parent_bone:
+			# bone.parent_bone.target = bone.origin
+
+class SmoothingResolver:
+	static func smooth_joint(bones: Array[IKBone3D], i: int, weight := 0.5) -> void:
+		if i == 0 or i == bones.size() - 1:
+			return
+
+		var prev = bones[i - 1].origin
+		var next = bones[i + 1].origin
+		var midpoint = (prev + next) * 0.5
+		bones[i].origin = bones[i].origin.lerp(midpoint, weight)
+
+	static func resolve(bones: Array[IKBone3D]) -> void:
+		for i in range(1, bones.size() - 1):
+			smooth_joint(bones, i)
 
 func apply_bones(bones: Array[IKBone3D]):
 	# Expects bones tip-to-root, reversing the order of application.
@@ -166,16 +296,10 @@ func apply_bones(bones: Array[IKBone3D]):
 	
 	bones.reverse()
 
-func preserve_length(original_from: Vector3, original_to: Vector3, length: float, stretch: float = 0.0) -> Vector3:
-	var dir = (original_to - original_from).normalized()
-	var target = original_from + dir * length
-
-	return target.lerp(original_to, target.distance_to(original_to) * stretch)
-
 func apply_bias(original_from: Vector3, original_to: Vector3, bias_to: Vector3, influence: float) -> Vector3:
 	var biased_to = (original_to + bias_to * influence)
 
-	return move_and_collide(original_from, original_to, biased_to)
+	return IKUtils.move_and_collide(skeleton, original_from, original_to, biased_to).point
 
 func raycast_collide(from: Vector3, to: Vector3) -> Dictionary:
 	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.new()
@@ -192,133 +316,4 @@ func raycast_collide(from: Vector3, to: Vector3) -> Dictionary:
 	return {
 		"point": to,
 		"collision": false,
-	}
-
-func move_and_collide(sample_origin: Vector3, from: Vector3, to: Vector3) -> Vector3:
-	var data = get_safe_point_for_line(sample_origin, from, to)
-
-	return data["point"]
-
-func get_safe_point_for_line(skeleton_sample_origin: Vector3, skeleton_from: Vector3, skeleton_to: Vector3) -> Dictionary:
-	var sample_count = 10 # Increased sample count for better precision
-	
-	var sample_origin = skeleton.global_transform * skeleton_sample_origin
-	var sample_start = skeleton.global_transform * skeleton_from
-	var sample_end = skeleton.global_transform * skeleton_to
-	
-	# First check if we can move directly to the target
-	var initial_movement_query = PhysicsRayQueryParameters3D.new()
-	initial_movement_query.from = sample_start
-	initial_movement_query.to = sample_end
-	var initial_movement_result = get_world_3d().direct_space_state.intersect_ray(initial_movement_query)
-	if initial_movement_result.size() == 0:
-		# If we can move directly, check if the line from origin to target is clear
-		var origin_query = PhysicsRayQueryParameters3D.new()
-		origin_query.from = sample_origin
-		origin_query.to = sample_end
-		if get_world_3d().direct_space_state.intersect_ray(origin_query).size() == 0:
-			return {
-				"point": skeleton_to,
-				"resolved": true
-			}
-	
-	# If direct movement is blocked, try to find a safe path
-	var safe_point_found = false
-	var last_known_safe_point = null
-	var closest_to_target = null
-	var closest_distance = INF
-	
-	for i in range(sample_count + 1):
-		var t = float(i) / sample_count
-		var current_point = sample_start.lerp(sample_end, t)
-		
-		# First check if we can move to this point
-		var current_movement_query = PhysicsRayQueryParameters3D.new()
-		current_movement_query.from = sample_start
-		current_movement_query.to = current_point
-		var current_movement_result = get_world_3d().direct_space_state.intersect_ray(current_movement_query)
-		if current_movement_result.size() > 0:
-			continue # Skip this point if we can't move to it
-		
-		# Then check if the line from origin to this point is clear
-		var origin_query = PhysicsRayQueryParameters3D.new()
-		origin_query.from = sample_origin
-		origin_query.to = current_point
-		var origin_result = get_world_3d().direct_space_state.intersect_ray(origin_query)
-		if origin_result.size() > 0:
-			if safe_point_found:
-				# We found a collision after having a safe point
-				return {
-					"point": skeleton.global_transform.inverse() * last_known_safe_point,
-					"resolved": true
-				}
-			# Try to find a safe direction around the obstacle
-			var d = (sample_end - sample_origin).normalized()
-			var dot = d.dot(origin_result.normal)
-			var safe_direction = (d - origin_result.normal * dot).normalized()
-			
-			# Try multiple angles around the obstacle
-			var best_angle = 0.0
-			var best_distance = INF
-
-			var angles_to_try = 8
-			var angle_step = PI / angles_to_try
-			
-			for angle in range(angles_to_try):
-				var rotated_direction = safe_direction.rotated(origin_result.normal, angle * angle_step)
-				var test_point = sample_origin + rotated_direction * sample_origin.distance_to(sample_end)
-				
-				# Check if we can move to this point
-				var test_movement_query = PhysicsRayQueryParameters3D.new()
-				test_movement_query.from = sample_start
-				test_movement_query.to = test_point
-				if get_world_3d().direct_space_state.intersect_ray(test_movement_query).size() > 0:
-					continue
-				
-				# Check if the line from origin to this point is clear
-				var test_origin_query = PhysicsRayQueryParameters3D.new()
-				test_origin_query.from = sample_origin
-				test_origin_query.to = test_point
-				if get_world_3d().direct_space_state.intersect_ray(test_origin_query).size() == 0:
-					var distance = test_point.distance_to(sample_end)
-					if distance < best_distance:
-						best_distance = distance
-						best_angle = angle * angle_step
-			
-			if best_distance < INF:
-				var final_direction = safe_direction.rotated(origin_result.normal, best_angle)
-				var final_point = sample_origin + final_direction * sample_origin.distance_to(sample_end)
-				
-				return get_safe_point_for_line(
-					skeleton_sample_origin,
-					skeleton.global_transform.inverse() * final_point,
-					skeleton_to,
-				)
-		
-		safe_point_found = true
-		last_known_safe_point = current_point
-		
-		# Keep track of the point closest to the target
-		var distance_to_target = current_point.distance_to(sample_end)
-		if distance_to_target < closest_distance:
-			closest_distance = distance_to_target
-			closest_to_target = current_point
-	
-	if safe_point_found:
-		return {
-			"point": skeleton.global_transform.inverse() * last_known_safe_point,
-			"resolved": true
-		}
-	
-	# If we couldn't find a safe point, return the closest point to the target
-	if closest_to_target:
-		return {
-			"point": skeleton.global_transform.inverse() * closest_to_target,
-			"resolved": true
-		}
-	
-	# Last resort: return the starting point
-	return {
-		"point": skeleton_from,
-		"resolved": false
 	}
