@@ -79,6 +79,94 @@ class CollisionData:
 		data.point = point
 		return data
 
+class LineCollisionData:
+	var is_hit: bool
+	var is_resolved: bool
+	var from: Vector3
+	var to: Vector3
+
+	static func make(is_hit: bool, is_resolved: bool, from: Vector3, to: Vector3) -> LineCollisionData:
+		var data = LineCollisionData.new()
+		data.is_hit = is_hit
+		data.is_resolved = is_resolved
+		data.from = from
+		data.to = to
+		return data
+
+static func line_move_and_collide(skeleton: Skeleton3D, original_from: Vector3, original_to: Vector3, target_from: Vector3, target_to: Vector3) -> LineCollisionData:
+	var data = _line_move_and_collide(
+		skeleton,
+		skeleton.global_transform * original_from,
+		skeleton.global_transform * original_to,
+		skeleton.global_transform * target_from,
+		skeleton.global_transform * target_to
+	)
+
+	data.from = skeleton.global_transform.inverse() * data.from
+	data.to = skeleton.global_transform.inverse() * data.to
+
+	return data
+
+static func _line_move_and_collide(skeleton: Skeleton3D, original_from: Vector3, original_to: Vector3, target_from: Vector3, target_to: Vector3) -> LineCollisionData:
+	var sample_count = 10
+
+	var is_safe_point_found = false
+	var safe_point_from = original_from
+	var safe_point_to = original_to
+
+	for i in range(sample_count + 1):
+		var sample_from = original_from.lerp(target_from, float(i) / sample_count)
+		var sample_to = original_to.lerp(target_to, float(i) / sample_count)
+		var query = PhysicsRayQueryParameters3D.new()
+		query.from = original_from
+		query.to = sample_from
+		var first_result = skeleton.get_world_3d().direct_space_state.intersect_ray(query)
+		
+		query.from = original_to
+		query.to = sample_to
+		var second_result = skeleton.get_world_3d().direct_space_state.intersect_ray(query)
+
+		query = PhysicsRayQueryParameters3D.new()
+		query.from = original_from.lerp(target_from, float(i) / sample_count)
+		query.to = original_to.lerp(target_to, float(i) / sample_count)
+		var third_result = skeleton.get_world_3d().direct_space_state.intersect_ray(query)
+
+		# No collision, mark it as safe
+		if first_result.size() == 0 and second_result.size() == 0 and third_result.size() == 0:
+			is_safe_point_found = true
+			safe_point_from = query.from
+			safe_point_to = query.to
+			continue
+
+		# Collision found
+		var point = Vector3.ZERO
+		var normal = Vector3.ZERO
+		if first_result.size() > 0:
+			point = first_result.position
+			normal = first_result.normal
+		elif second_result.size() > 0:
+			point = second_result.position
+			normal = second_result.normal
+		elif third_result.size() > 0:
+			point = third_result.position
+			normal = third_result.normal
+
+		var deflected_to = point + normal
+
+		var projected_to = original_from.lerp(deflected_to, original_from.distance_to(original_to))
+		var deflected_point_from = get_safe_point(skeleton, safe_point_to, projected_to, target_from)
+		var deflected_point_to = get_safe_point(skeleton, deflected_point_from.point, projected_to, target_to)
+		return LineCollisionData.make(true, true, deflected_point_from.point, deflected_point_to.point)
+		
+		if is_safe_point_found:
+			return LineCollisionData.make(true, true, safe_point_from, safe_point_to)
+
+	if is_safe_point_found:
+		return LineCollisionData.make(false, true, safe_point_from, safe_point_to)
+
+	# Unable to find a clear path, mark it as non-resolved
+	return LineCollisionData.make(true, false, safe_point_from, safe_point_to)
+
 static func move_and_collide(skeleton: Skeleton3D, sample_origin: Vector3, from: Vector3, to: Vector3) -> CollisionData:
 	var data = get_safe_point(
 		skeleton,
