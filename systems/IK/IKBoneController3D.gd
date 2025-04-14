@@ -74,6 +74,10 @@ func _process(_delta: float) -> void:
 
 var d = 0
 func _physics_process(_delta: float) -> void:
+	d += 1
+	if d % 1 != 0:
+		return
+
 	if get_child_count() == 0 or not enabled or (not preview and Engine.is_editor_hint()) or not skeleton or depth == 0:
 		return
 
@@ -98,25 +102,23 @@ func resolve_ik(delta: float) -> void:
 	var bones = collect_bones(tip_bone_idx)
 	apply_root_rotation(bones)
 
-	var debug_colors = [Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN]
+	var debug_colors = [Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN]
 
-	var iterations = 2
+	var iterations = 8
+	BiasResolver.resolve(skeleton, bones, delta, iterations, gravity)
 
 	for i in range(iterations):
-		BiasResolver.resolve(skeleton, bones, delta, iterations, gravity)
 		FabrikResolver.resolve(bones, source_pos, target_pos)
-		if bone_debug:
-			bone_debug.print_bones(bones, debug_colors[i * 2])
-
-		CollisionResolver.resolve(bones, target_pos)
-		if bone_debug:
-			bone_debug.print_bones(bones, debug_colors[i * 2 + 1])
+		CollisionResolver.resolve(bone_debug, bones, target_pos, 1.0)
 
 		FabrikResolver.reconnect_locked_bones(bones, source_pos, target_pos)
 
 		for bone in bones:
 			bone.is_locked_origin = false
 			bone.is_locked_target = false
+
+	if bone_debug:
+		bone_debug.print_bones(bones, debug_colors[0])
 
 
 	# var obstacle_center = skeleton.global_transform.inverse() * Vector3(0, 8.0, -8.0)
@@ -191,18 +193,8 @@ class FabrikResolver:
 		for i in range(from_index, to_index):
 			var bone = bones[i]
 
-			if bone.is_locked_origin or bone.is_locked_target:
-				if i > from_index:
-					var next_bone = bones[i - 1]
-					next_bone.origin = bone.target
-					next_bone.target = _preserve_length(bone.target, next_bone.target, next_bone.length)
-				if i < to_index - 1:
-					var prev_bone = bones[i + 1]
-					prev_bone.target = bone.origin
-					prev_bone.origin = _preserve_length(bone.origin, prev_bone.origin, prev_bone.length)
-			else:
-				bone.target = target_pos
-				bone.origin = _preserve_length(bone.target, bone.origin, bone.length)
+			bone.target = target_pos
+			bone.origin = _preserve_length(bone.target, bone.origin, bone.length)
 
 			target_pos = bone.origin
 
@@ -210,18 +202,8 @@ class FabrikResolver:
 		for i in range(to_index - 1, from_index - 1, -1):
 			var bone = bones[i]
 
-			if bone.is_locked_origin or bone.is_locked_target:
-				if i > from_index:
-					var next_bone = bones[i - 1]
-					next_bone.origin = bone.target
-					next_bone.target = _preserve_length(bone.target, next_bone.target, next_bone.length)
-				if i < to_index - 1:
-					var prev_bone = bones[i + 1]
-					prev_bone.target = bone.origin
-					prev_bone.origin = _preserve_length(bone.origin, prev_bone.origin, prev_bone.length)
-			else:
-				bone.origin = source_pos
-				bone.target = _preserve_length(bone.origin, bone.target, bone.length)
+			bone.origin = source_pos
+			bone.target = _preserve_length(bone.origin, bone.target, bone.length)
 
 			source_pos = bone.target
 
@@ -233,27 +215,27 @@ class FabrikResolver:
 
 class BiasResolver:
 	static func resolve(skeleton: Skeleton3D, bones: Array[IKBone3D], _delta: float, iterations: int, gravity: float) -> void:
-		var gravity_this_iteration = 9.8 * gravity / iterations
-		var gravity_vector = (skeleton.global_transform.inverse() * Vector3.DOWN).normalized()
+		var gravity_this_iteration = 9.8 * gravity
+		var gravity_vector = (skeleton.global_transform.inverse().basis * Vector3.DOWN).normalized()
 		for i in range(bones.size()):
 			var bone = bones[i]
 			bone.origin = bone.origin + gravity_this_iteration * gravity_vector * _delta
 			bone.target = bone.target + gravity_this_iteration * gravity_vector * _delta
 
 class CollisionResolver:
-	static func resolve(bones: Array[IKBone3D], target_pos: Vector3) -> void:
+	static func resolve(debug_bone: IKBoneDebug, bones: Array[IKBone3D], target_pos: Vector3, push_strength: float) -> void:
 		bones.reverse()
 		for bone in bones:
-			_resolve_bone(bone)
+			_resolve_bone(debug_bone, bone, push_strength)
 		# for bone in bones:
 			# _reconnect_bone(bone, target_pos)
 		bones.reverse()
 
-	static func _resolve_bone(desired: IKBone3D) -> void:
+	static func _resolve_bone(debug_bone: IKBoneDebug, desired: IKBone3D, push_strength: float) -> void:
 		var current = desired.skeleton.get_bone_global_pose(desired.bone_idx)
 		var current_target = current.origin + current.basis.y * desired.length
 
-		var line_move_data = IKUtils.line_move_and_collide(desired.skeleton, current.origin, current_target, desired.origin, desired.target)
+		var line_move_data = IKUtils.line_move_and_collide(desired.skeleton, current.origin, current_target, desired.origin, desired.target, push_strength)
 		desired.origin = line_move_data.from
 		desired.target = line_move_data.to
 		if line_move_data.is_hit:
