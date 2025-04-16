@@ -21,6 +21,7 @@ var length: float
 var is_locked_origin: bool
 var is_locked_target: bool
 var locked_point: Vector3
+var rigid_body: RigidBody3D
 
 static func make(skeleton: Skeleton3D, bone_idx: int, child_idx: int) -> IKBone3D:
 	var bone = IKBone3D.new()

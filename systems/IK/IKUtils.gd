@@ -93,14 +93,21 @@ class LineCollisionData:
 		data.to = to
 		return data
 
-static func line_move_and_collide(skeleton: Skeleton3D, original_from: Vector3, original_to: Vector3, target_from: Vector3, target_to: Vector3, push_strength: float) -> LineCollisionData:
+static func line_move_and_collide(
+	skeleton: Skeleton3D,
+	original_from: Vector3,
+	original_to: Vector3,
+	target_from: Vector3,
+	target_to: Vector3,
+	data_bone: IKBone3D
+) -> LineCollisionData:
 	var data = _line_move_and_collide(
 		skeleton,
 		skeleton.global_transform * original_from,
 		skeleton.global_transform * original_to,
 		skeleton.global_transform * target_from,
 		skeleton.global_transform * target_to,
-		push_strength
+		data_bone
 	)
 
 	data.from = skeleton.global_transform.inverse() * data.from
@@ -108,49 +115,85 @@ static func line_move_and_collide(skeleton: Skeleton3D, original_from: Vector3, 
 
 	return data
 
-static func _line_move_and_collide(skeleton: Skeleton3D, original_from: Vector3, original_to: Vector3, target_from: Vector3, target_to: Vector3, push_strength: float) -> LineCollisionData:
-	var sample_count = 20
+static func _line_move_and_collide(
+	skeleton: Skeleton3D,
+	original_from: Vector3,
+	original_to: Vector3,
+	target_from: Vector3,
+	target_to: Vector3,
+	data_bone: IKBone3D
+) -> LineCollisionData:
+	if not data_bone.rigid_body:
+		return LineCollisionData.make(false, true, original_from, original_to)
 
-	var is_safe_point_found = false
-	var safe_point_from = original_from
-	var safe_point_to = original_to
+	var sample_count = 40
+
+	var has_collision = false
+	var safe_point_found = false
+	var safe_from = original_from
+	var safe_to = original_to
+
+	var length = original_from.distance_to(original_to)
 
 	for i in range(sample_count + 1):
-		var query = PhysicsRayQueryParameters3D.new()
-		query.from = original_from.lerp(target_from, float(i) / sample_count)
-		query.to = original_to.lerp(target_to, float(i) / sample_count)
-		var third_result = skeleton.get_world_3d().direct_space_state.intersect_ray(query)
+		var query = PhysicsShapeQueryParameters3D.new()
+		var shape = data_bone.rigid_body.get_child(0).shape
+		query.shape = shape
 
-		# No collision, mark it as safe
-		if third_result.size() == 0:
-			is_safe_point_found = true
-			safe_point_from = query.from
-			safe_point_to = query.to
+		var current_transform = data_bone.rigid_body.get_child(0).global_transform
+		var target_transform = Transform3D()
+		var temp_basis = Basis.looking_at(target_to - target_from, Vector3.UP)
+
+		target_transform.basis = Basis(temp_basis.x, -temp_basis.z, temp_basis.y)
+		target_transform.origin = target_from + target_transform.basis.y * 0.5
+
+		query.transform = current_transform.interpolate_with(target_transform, float(i) / sample_count)
+
+		var result = skeleton.get_world_3d().direct_space_state.get_rest_info(query)
+
+		var from = query.transform.origin - query.transform.basis.y * length / 2
+		var to = query.transform.origin + query.transform.basis.y * length / 2
+
+		if result.size() == 0:
+			safe_point_found = true
+			safe_from = from
+			safe_to = to
 			continue
 
-		# Collision found
-		var point = Vector3.ZERO
-		var normal = Vector3.ZERO
-		if third_result.size() > 0:
-			point = third_result.position
-			normal = third_result.normal
+		var normal = result.normal
+		var distance = distance_to_line(from, to, result.point)
+		var angle_from_a = (result.point - from).angle_to(to - from)
+		if angle_from_a > PI / 2:
+			distance = result.point.distance_to(from)
+			normal = (from - result.point).normalized()
 
-		var left_fraction = query.from.distance_to(point) / query.from.distance_to(query.to)
-		var right_fraction = 1.0 - left_fraction
+		var angle_from_b = (result.point - to).angle_to(from - to)
+		if angle_from_b > PI / 2:
+			distance = result.point.distance_to(to)
+			normal = (to - result.point).normalized()
 
-		var deflected_point_from = safe_point_from + normal * (1.0 - left_fraction) * push_strength
-		var deflected_point_to = safe_point_to + normal * (1.0 - right_fraction) * push_strength
+		if distance < 0.05:
+			print(distance)
+			var overshoot = 0.05 - distance
+			from = from + normal * overshoot
+			to = to + normal * overshoot
+			return LineCollisionData.make(true, true, from, to)
 
-		if push_strength > 0.0:
-			return _line_move_and_collide(skeleton, deflected_point_from, deflected_point_to, target_from, target_to, 0.0)
-		else:
-			return LineCollisionData.make(true, true, safe_point_from, safe_point_to)
+		has_collision = true
+		safe_point_found = true
+		safe_from = original_from
+		safe_to = original_to
+		continue
 
-	if is_safe_point_found:
-		return LineCollisionData.make(false, true, safe_point_from, safe_point_to)
+	return LineCollisionData.make(has_collision, safe_point_found, safe_from, safe_to)
 
-	# Unable to find a clear path, mark it as non-resolved
-	return LineCollisionData.make(true, false, safe_point_from, safe_point_to)
+
+static func distance_to_line(base_a: Vector3, base_b: Vector3, point: Vector3) -> float:
+	var line_vector = base_b - base_a
+	var point_to_a = point - base_a
+	var cross_product = point_to_a.cross(line_vector)
+	var distance = cross_product.length() / line_vector.length()
+	return distance
 
 static func move_and_collide(skeleton: Skeleton3D, sample_origin: Vector3, from: Vector3, to: Vector3) -> CollisionData:
 	var data = get_safe_point(
