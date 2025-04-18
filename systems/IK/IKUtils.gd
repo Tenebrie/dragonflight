@@ -99,7 +99,8 @@ static func line_move_and_collide(
 	original_to: Vector3,
 	target_from: Vector3,
 	target_to: Vector3,
-	data_bone: IKBone3D
+	data_bone: IKBone3D,
+	land: bool
 ) -> LineCollisionData:
 	var data = _line_move_and_collide(
 		skeleton,
@@ -107,7 +108,8 @@ static func line_move_and_collide(
 		skeleton.global_transform * original_to,
 		skeleton.global_transform * target_from,
 		skeleton.global_transform * target_to,
-		data_bone
+		data_bone,
+		land
 	)
 
 	data.from = skeleton.global_transform.inverse() * data.from
@@ -121,12 +123,13 @@ static func _line_move_and_collide(
 	original_to: Vector3,
 	target_from: Vector3,
 	target_to: Vector3,
-	data_bone: IKBone3D
+	data_bone: IKBone3D,
+	land: bool
 ) -> LineCollisionData:
 	if not data_bone.rigid_body:
 		return LineCollisionData.make(false, true, original_from, original_to)
 
-	var sample_count = 40
+	var sample_count = 15
 
 	var has_collision = false
 	var safe_point_found = false
@@ -135,7 +138,7 @@ static func _line_move_and_collide(
 
 	var length = original_from.distance_to(original_to)
 
-	for i in range(sample_count + 1):
+	for i in range(sample_count):
 		var query = PhysicsShapeQueryParameters3D.new()
 		var shape = data_bone.rigid_body.get_child(0).shape
 		query.shape = shape
@@ -145,9 +148,12 @@ static func _line_move_and_collide(
 		var temp_basis = Basis.looking_at(target_to - target_from, Vector3.UP)
 
 		target_transform.basis = Basis(temp_basis.x, -temp_basis.z, temp_basis.y)
-		target_transform.origin = target_from + target_transform.basis.y * 0.5
 
-		query.transform = current_transform.interpolate_with(target_transform, float(i) / sample_count)
+		var shape_offset = target_transform.basis * data_bone.rigid_body.get_child(0).transform.origin
+		target_transform.origin = target_from + shape_offset
+		# print(target_transform.basis.y * 0.5, " ", shape_offset)
+
+		query.transform = current_transform.interpolate_with(target_transform, float(i + 1) / sample_count)
 
 		var result = skeleton.get_world_3d().direct_space_state.get_rest_info(query)
 
@@ -172,17 +178,16 @@ static func _line_move_and_collide(
 			distance = result.point.distance_to(to)
 			normal = (to - result.point).normalized()
 
-		if distance < 0.05:
-			print(distance)
+		if distance < 0.0501:
 			var overshoot = 0.05 - distance
 			from = from + normal * overshoot
 			to = to + normal * overshoot
 			return LineCollisionData.make(true, true, from, to)
 
-		has_collision = true
+		has_collision = false
 		safe_point_found = true
-		safe_from = original_from
-		safe_to = original_to
+		safe_from = from
+		safe_to = to
 		continue
 
 	return LineCollisionData.make(has_collision, safe_point_found, safe_from, safe_to)
