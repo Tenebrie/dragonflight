@@ -67,6 +67,9 @@ static func get_roll_difference(transform1: Transform3D, transform2: Transform3D
 # 		"yaw": euler.y,
 	# }
 
+static var time_total = 0
+static var time_query = 0
+
 class CollisionData:
 	var is_hit: bool
 	var is_resolved: bool
@@ -100,7 +103,8 @@ static func line_move_and_collide(
 	target_from: Vector3,
 	target_to: Vector3,
 	data_bone: IKBone3D,
-	land: bool
+	land: bool,
+	push_strength: float
 ) -> LineCollisionData:
 	var data = _line_move_and_collide(
 		skeleton,
@@ -109,7 +113,8 @@ static func line_move_and_collide(
 		skeleton.global_transform * target_from,
 		skeleton.global_transform * target_to,
 		data_bone,
-		land
+		land,
+		push_strength
 	)
 
 	data.from = skeleton.global_transform.inverse() * data.from
@@ -124,12 +129,13 @@ static func _line_move_and_collide(
 	target_from: Vector3,
 	target_to: Vector3,
 	data_bone: IKBone3D,
-	land: bool
+	land: bool,
+	push_strength: float
 ) -> LineCollisionData:
 	if not data_bone.rigid_body:
 		return LineCollisionData.make(false, true, original_from, original_to)
 
-	var sample_count = 10
+	var sample_count = 4
 
 	var has_collision = false
 	var safe_point_found = false
@@ -145,7 +151,7 @@ static func _line_move_and_collide(
 
 		var current_transform = data_bone.rigid_body.get_child(0).global_transform
 		var target_transform = Transform3D()
-		var temp_basis = Basis.looking_at(target_to - target_from, Vector3.UP)
+		var temp_basis = Basis.looking_at(target_to - target_from, data_bone.rigid_body.global_transform.basis.z)
 
 		target_transform.basis = Basis(temp_basis.x, -temp_basis.z, temp_basis.y)
 		# TODO: Check if collision shape offset is needed to be taken into account
@@ -159,7 +165,27 @@ static func _line_move_and_collide(
 		var from = query.transform.origin - query.transform.basis.y * length / 2
 		var to = query.transform.origin + query.transform.basis.y * length / 2
 
+		var ray_query = PhysicsRayQueryParameters3D.new()
+		ray_query.from = original_from
+		ray_query.to = from
+		var ray_result = skeleton.get_world_3d().direct_space_state.intersect_ray(ray_query)
+		if ray_result.size() > 0:
+			continue
+
+		ray_query.from = original_to
+		ray_query.to = to
+		ray_result = skeleton.get_world_3d().direct_space_state.intersect_ray(ray_query)
+		if ray_result.size() > 0:
+			continue
+
+		ray_query.from = from
+		ray_query.to = to
+		ray_result = skeleton.get_world_3d().direct_space_state.intersect_ray(ray_query)
+		if ray_result.size() > 0:
+			continue
+
 		if result.size() == 0:
+			has_collision = false
 			safe_point_found = true
 			safe_from = from
 			safe_to = to
@@ -177,13 +203,25 @@ static func _line_move_and_collide(
 			distance = result.point.distance_to(to)
 			normal = (to - result.point).normalized()
 
-		if distance < 0.055:
-			var overshoot = 0.05 - distance
-			from = from + normal * overshoot
-			to = to + normal * overshoot
-			return LineCollisionData.make(true, true, from, to)
+		var threshold = 0.20
+		if distance <= threshold:
+			var overshoot = 0.03 - distance
+			if not land:
+				var push_val = (threshold - distance) * 1
+				overshoot = max(overshoot, (push_strength * push_val))
 
-		has_collision = false
+			if overshoot > 0:
+				from = from + normal * overshoot
+				to = to + normal * overshoot
+
+				has_collision = true
+				safe_point_found = true
+				safe_from = from
+				safe_to = to
+				if land:
+					return LineCollisionData.make(true, true, from, to)
+
+		has_collision = true
 		safe_point_found = true
 		safe_from = from
 		safe_to = to

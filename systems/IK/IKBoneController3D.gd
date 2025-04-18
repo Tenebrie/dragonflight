@@ -104,20 +104,32 @@ func resolve_ik(delta: float) -> void:
 
 	var debug_colors = [Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN]
 
-	var iterations = 4
-	# BiasResolver.resolve(skeleton, bones, delta, iterations, gravity)
+	var iterations = 3
 
 	# FabrikResolver.resolve(bones, source_pos, target_pos)
 	# FabrikResolver.reconnect_locked_bones(bones)
 
-	for i in range(iterations):
-		FabrikResolver.resolve_with_collision(bones, source_pos, target_pos)
+	var tip_bone = bones[0]
+	var dist_to_target = min(0.2, tip_bone.target.distance_to(target_pos))
+	var desired_target_pos = tip_bone.target + (target_pos - tip_bone.target).normalized() * dist_to_target
+	var iteration_target_pos = desired_target_pos
+	iteration_target_pos = raycast_collide(tip_bone.target, iteration_target_pos).point
 
-		CollisionResolver.resolve_and_land(bones)
+	BiasResolver.resolve_gravity(skeleton, bones, delta, iterations, gravity, stiffness)
+
+	for i in range(iterations):
+		var push_strength = (iterations - i) / float(iterations)
+		var second_push_strength = (iterations - i - 1) / float(iterations)
+
+		FabrikResolver.resolve_with_collision(bones, source_pos, iteration_target_pos, push_strength)
+
+		# CollisionResolver.resolve_and_land(bones)
 
 		bones[depth - 1].is_locked_origin = true
 
 		FabrikResolver.reconnect_locked_bones(bones)
+
+		iteration_target_pos = tip_bone.target.lerp(iteration_target_pos, second_push_strength)
 
 		for bone in bones:
 			bone.is_locked_origin = false
@@ -180,12 +192,9 @@ class FabrikResolver:
 					bones[i].is_locked_target = true
 		bones.reverse()
 
-	static func resolve_with_collision(bones: Array[IKBone3D], root_pos: Vector3, target_pos: Vector3) -> void:
-		_fabrik_phase1_collision_aware(bones, target_pos, 0, bones.size())
-		_fabrik_phase2_collision_aware(bones, root_pos, 0, bones.size())
-
-		# _fabrik_phase1(bones, target_pos, 0, bones.size())
-		# _fabrik_phase2(bones, root_pos, 0, bones.size())
+	static func resolve_with_collision(bones: Array[IKBone3D], root_pos: Vector3, target_pos: Vector3, push_strength: float) -> void:
+		_fabrik_phase1_collision_aware(bones, target_pos, 0, bones.size(), push_strength)
+		_fabrik_phase2_collision_aware(bones, root_pos, 0, bones.size(), push_strength)
 
 	static func _fabrik_phase1(bones: Array[IKBone3D], target_pos: Vector3, from_index: int, to_index: int):
 		for i in range(from_index, to_index):
@@ -205,34 +214,55 @@ class FabrikResolver:
 
 			source_pos = bone.target
 
-	static func _fabrik_phase1_collision_aware(bones: Array[IKBone3D], target_pos: Vector3, from_index: int, to_index: int):
+	static func _fabrik_phase1_collision_aware(
+		bones: Array[IKBone3D],
+		target_pos: Vector3,
+		from_index: int,
+		to_index: int,
+		push_strength: float
+	):
 		for i in range(from_index, to_index):
 			var bone = bones[i]
 
 			var desired_origin = _preserve_length(target_pos, bone.origin, bone.length)
-			var line_move_data = IKUtils.line_move_and_collide(bone.skeleton, bone.origin, bone.target, desired_origin, target_pos, bone, true)
-			bone.origin = _preserve_length(line_move_data.to, line_move_data.from, bone.length)
+			var line_move_data = IKUtils.line_move_and_collide(
+				bone.skeleton,
+				bone.origin,
+				bone.target,
+				desired_origin,
+				target_pos,
+				bone,
+				false,
+				push_strength,
+			)
+			bone.origin = line_move_data.from
 			bone.target = line_move_data.to
-
-			# bone.target = target_pos
-			# bone.origin = _preserve_length(bone.target, bone.origin, bone.length)
 
 			target_pos = bone.origin
 
-	static func _fabrik_phase2_collision_aware(bones: Array[IKBone3D], source_pos: Vector3, from_index: int, to_index: int):
+	static func _fabrik_phase2_collision_aware(
+		bones: Array[IKBone3D],
+		source_pos: Vector3,
+		from_index: int,
+		to_index: int,
+		push_strength: float
+	):
 		for i in range(to_index - 1, from_index - 1, -1):
 			var bone = bones[i]
 
 			var desired_target = _preserve_length(source_pos, bone.target, bone.length)
-			var line_move_data = IKUtils.line_move_and_collide(bone.skeleton, bone.origin, bone.target, source_pos, desired_target, bone, true)
-			# if i == 0:
-				# print(line_move_data.from, source_pos, _preserve_length(line_move_data.from, line_move_data.to, bone.length), _preserve_length(source_pos, bone.target, bone.length))
+			var line_move_data = IKUtils.line_move_and_collide(
+				bone.skeleton,
+				bone.origin,
+				bone.target,
+				source_pos,
+				desired_target,
+				bone,
+				false,
+				push_strength,
+			)
 			bone.origin = line_move_data.from
-			bone.target = _preserve_length(line_move_data.from, line_move_data.to, bone.length)
-
-			# bone.origin = source_pos
-			# bone.target = _preserve_length(bone.origin, bone.target, bone.length)
-
+			bone.target = line_move_data.to
 			source_pos = bone.target
 
 
@@ -243,13 +273,23 @@ class FabrikResolver:
 		return target
 
 class BiasResolver:
-	static func resolve(skeleton: Skeleton3D, bones: Array[IKBone3D], _delta: float, iterations: int, gravity: float) -> void:
+	static func resolve_gravity(skeleton: Skeleton3D, bones: Array[IKBone3D], _delta: float, iterations: int, gravity: float, stiffness: float) -> void:
 		var gravity_this_iteration = 9.8 * gravity
 		var gravity_vector = (skeleton.global_transform.inverse().basis * Vector3.DOWN).normalized()
 		for i in range(bones.size()):
 			var bone = bones[i]
 			bone.origin = bone.origin + gravity_this_iteration * gravity_vector * _delta
 			bone.target = bone.target + gravity_this_iteration * gravity_vector * _delta
+
+	static func resolve_stiffness(skeleton: Skeleton3D, bones: Array[IKBone3D], _delta: float, iterations: int, stiffness: float) -> void:
+		var stiffness_this_iteration = stiffness
+		for i in range(bones.size() - 1):
+			var bone = bones[i]
+			var parent_bone = bones[i + 1]
+			var stiffness_vector = parent_bone.rigid_body.global_transform.basis.z
+			var stiff_target = bone.origin + stiffness_vector * bone.length
+			bone.origin = bone.origin
+			bone.target = stiff_target
 
 class CollisionResolver:
 	static func resolve_and_push(bones: Array[IKBone3D]) -> void:
@@ -268,7 +308,15 @@ class CollisionResolver:
 		var current = desired.skeleton.get_bone_global_pose(desired.bone_idx)
 		var current_target = current.origin + current.basis.y * desired.length
 
-		var line_move_data = IKUtils.line_move_and_collide(desired.skeleton, current.origin, current_target, desired.origin, desired.target, desired, land)
+		var line_move_data = IKUtils.line_move_and_collide(
+			desired.skeleton,
+			current.origin,
+			current_target,
+			desired.origin,
+			desired.target,
+			desired,
+			land,
+			0.0)
 		desired.origin = line_move_data.from
 		desired.target = line_move_data.to
 		# if line_move_data.is_hit:
