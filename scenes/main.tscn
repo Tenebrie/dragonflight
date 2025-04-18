@@ -46,7 +46,6 @@ transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 8, 
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0105746, -0.0385408, 0.0404406)
 bones/27/position = Vector3(2.32889e-09, 0.944844, -7.44074e-09)
 bones/27/rotation = Quaternion(0.0158948, 0.00532569, 0.00336275, 0.999854)
-bones/27/scale = Vector3(1, 1, 1)
 bones/28/position = Vector3(-4.65661e-09, 1.01967, -3.67654e-08)
 bones/28/rotation = Quaternion(-0.0205066, 0.0040795, -0.00609764, 0.999763)
 bones/28/scale = Vector3(1, 1, 1)
@@ -74,14 +73,14 @@ bones/35/scale = Vector3(1, 1, 1)
 bones/36/position = Vector3(9.31323e-10, 1.11863, 6.28061e-08)
 bones/36/rotation = Quaternion(0.0214061, -0.00176997, 0.00229938, 0.999767)
 bones/36/scale = Vector3(1, 1, 1)
-bones/37/position = Vector3(2.32458e-06, 1.05618, 0.000709534)
-bones/37/rotation = Quaternion(-0.0522422, 4.44268e-05, 0.000163459, 0.998634)
+bones/37/position = Vector3(-1.78218e-05, 1.05614, -7.34329e-05)
+bones/37/rotation = Quaternion(0.00538431, -5.32745e-05, -0.00131676, 0.999985)
 bones/37/scale = Vector3(1, 1, 1)
-bones/38/position = Vector3(0, 1.29956, -7.15256e-07)
-bones/38/rotation = Quaternion(4.98742e-05, -2.48868e-05, -7.92013e-07, 1)
+bones/38/position = Vector3(1.49012e-08, 1.29956, -4.76837e-07)
+bones/38/rotation = Quaternion(0.000271544, -1.14275e-05, -4.19414e-06, 1)
 bones/38/scale = Vector3(1, 1, 1)
-bones/39/position = Vector3(1.49012e-08, 0.988131, 2.38419e-07)
-bones/39/rotation = Quaternion(5.66393e-05, 3.14321e-05, -1.85484e-07, 1)
+bones/39/position = Vector3(-1.49012e-08, 0.988129, 4.76837e-07)
+bones/39/rotation = Quaternion(0.000325606, 0.000142877, -3.40743e-06, 1)
 bones/39/scale = Vector3(1, 1, 1)
 
 [node name="TailController" parent="Dragon/Armature/Skeleton3D" index="1"]
@@ -93,11 +92,11 @@ stiffness = 0.0
 editor_bone_debug = true
 
 [node name="TailTarget" parent="Dragon/Armature/Skeleton3D/TailController" index="0"]
-transform = Transform3D(0.378454, -0.69177, -0.615023, -0.907716, -0.407362, -0.100292, -0.181181, 0.596203, -0.782106, 0, 12.788, -6.66405)
+transform = Transform3D(0.378454, -0.69177, -0.615023, -0.907716, -0.407362, -0.100292, -0.181181, 0.596203, -0.782106, 0, 13.4922, -7.03535)
 top_level = true
 
 [node name="Tail_014" parent="Dragon/Armature/Skeleton3D/TailController" index="1"]
-transform = Transform3D(-0.938028, 0.260653, 0.228392, 0.122226, -0.367859, 0.921814, 0.32429, 0.892602, 0.313203, 1.6191, -6.44856, 1.02456)
+transform = Transform3D(-0.938873, 0.282608, 0.196593, 0.122976, -0.258062, 0.95827, 0.321549, 0.92387, 0.207533, 1.66886, -6.19987, 1.09553)
 
 [node name="RigidBody3D" parent="Dragon/Armature/Skeleton3D/TailController/Tail_014" index="0"]
 transform = Transform3D(1, 2.51643e-06, 0.000344687, -2.36183e-06, 1, -8.34698e-08, -0.000344339, 2.67581e-07, 1, 1.37091e-06, 1.90735e-06, 9.53674e-07)
@@ -106,13 +105,46 @@ transform = Transform3D(1, 2.51643e-06, 0.000344687, -2.36183e-06, 1, -8.34698e-
 transform = Transform3D(0.999825, -2.52668e-06, 0.0186986, 2.36277e-06, 1, 4.5076e-07, -0.018699, -3.27826e-07, 0.999825, -2.45869e-06, 0.499998, -2.86102e-06)
 
 [node name="Tail_013" parent="Dragon/Armature/Skeleton3D/TailController" index="2"]
-transform = Transform3D(-0.938013, 0.260628, 0.22848, 0.122284, -0.367964, 0.921764, 0.32431, 0.892567, 0.313284, 1.36156, -6.08497, 0.142586)
+transform = Transform3D(-0.938815, 0.282487, 0.197045, 0.123248, -0.258687, 0.958067, 0.321615, 0.923733, 0.208043, 1.38972, -5.94425, 0.182768)
 
 [node name="Tail_012" parent="Dragon/Armature/Skeleton3D/TailController" index="3"]
-transform = Transform3D(-0.938024, 0.260607, 0.22846, 0.122237, -0.368056, 0.921734, 0.324296, 0.892535, 0.313389, 1.02289, -5.60665, -1.01732)
+transform = Transform3D(-0.938817, 0.282388, 0.197177, 0.123224, -0.259208, 0.957929, 0.321617, 0.923617, 0.208552, 1.02274, -5.6074, -1.01753)
 
 [node name="CollisionShape3D" parent="Dragon/Armature/Skeleton3D/TailController/Tail_012/RigidBody3D" index="0"]
 transform = Transform3D(1, -9.31323e-10, 9.31323e-10, 9.31323e-10, 1, 2.98023e-08, 4.65661e-10, 0, 1, -2.52743e-10, 0.646381, 7.45058e-09)
+
+[node name="Tail_011" parent="Dragon/Armature/Skeleton3D/TailController" index="4"]
+transform = Transform3D(-0.938094, 0.28272, 0.20012, 0.122425, -0.269832, 0.955093, 0.324023, 0.920467, 0.218516, 0.724148, -5.32234, -1.98965)
+
+[node name="Tail_010" parent="Dragon/Armature/Skeleton3D/TailController" index="5"]
+transform = Transform3D(-0.940088, 0.269649, 0.208621, 0.120398, -0.309916, 0.94311, 0.318964, 0.911724, 0.258883, 0.42251, -4.97566, -3.00954)
+
+[node name="Tail_009" parent="Dragon/Armature/Skeleton3D/TailController" index="6"]
+transform = Transform3D(-0.94216, 0.266674, 0.203025, 0.118664, -0.301107, 0.946178, 0.313454, 0.915543, 0.252046, 0.15305, -4.67141, -3.93465)
+
+[node name="Tail_008" parent="Dragon/Armature/Skeleton3D/TailController" index="7"]
+transform = Transform3D(-0.943987, 0.263284, 0.198919, 0.117062, -0.296417, 0.947857, 0.308519, 0.918051, 0.248993, -0.139484, -4.34206, -4.95469)
+
+[node name="Tail_007" parent="Dragon/Armature/Skeleton3D/TailController" index="8"]
+transform = Transform3D(-0.947831, 0.257166, 0.188364, 0.113484, -0.279976, 0.953276, 0.297888, 0.924921, 0.236185, -0.434748, -4.02061, -6.01664)
+
+[node name="Tail_006" parent="Dragon/Armature/Skeleton3D/TailController" index="9"]
+transform = Transform3D(-0.948544, 0.249313, 0.195208, 0.112997, -0.309382, 0.944201, 0.295796, 0.917674, 0.265291, -0.645196, -3.75945, -6.79125)
+
+[node name="Tail_005" parent="Dragon/Armature/Skeleton3D/TailController" index="10"]
+transform = Transform3D(-0.950376, 0.246113, 0.190298, 0.111249, -0.302388, 0.946671, 0.290532, 0.920863, 0.260002, -0.879415, -3.47168, -7.66761)
+
+[node name="Tail_004" parent="Dragon/Armature/Skeleton3D/TailController" index="11"]
+transform = Transform3D(-0.951365, 0.24217, 0.190415, 0.11039, -0.309067, 0.944612, 0.287608, 0.919691, 0.267302, -1.13722, -3.14266, -8.64669)
+
+[node name="Tail_003" parent="Dragon/Armature/Skeleton3D/TailController" index="12"]
+transform = Transform3D(-0.953045, 0.23099, 0.195825, 0.109244, -0.340866, 0.933743, 0.282436, 0.911292, 0.299626, -1.3401, -2.84328, -9.44706)
+
+[node name="Tail_002" parent="Dragon/Armature/Skeleton3D/TailController" index="13"]
+transform = Transform3D(-0.948519, 0.250578, 0.193707, 0.112983, -0.303664, 0.946057, 0.295883, 0.919238, 0.259719, -1.5956, -2.53364, -10.3844)
+
+[node name="Tail_001" parent="Dragon/Armature/Skeleton3D/TailController" index="14"]
+transform = Transform3D(-0.948002, 0.237756, 0.211571, 0.125141, -0.332761, 0.934671, 0.292627, 0.912547, 0.285705, -1.82025, -2.21924, -11.2466)
 
 [node name="Node3D" type="Node3D" parent="Dragon"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.409, 7.63963, 2.70928)
@@ -166,7 +198,7 @@ transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 
 shape = SubResource("ConcavePolygonShape3D_o6xl0")
 
 [node name="Curler5" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.999993, 0.0037699, 0, -0.0037699, 0.999993, 0, 8.53697, 4.21147)
+transform = Transform3D(1, 0, 0, 0, 0.999993, 0.0037699, 0, -0.0037699, 0.999993, 0, 7.23626, 2.93767)
 metadata/_edit_group_ = true
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Curler5"]
@@ -192,7 +224,7 @@ transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 
 shape = SubResource("ConcavePolygonShape3D_o6xl0")
 
 [node name="Curler3" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.90735e-06, 8.3126, 1.31131)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.90735e-06, 7.93584, 0.333533)
 metadata/_edit_group_ = true
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Curler3"]

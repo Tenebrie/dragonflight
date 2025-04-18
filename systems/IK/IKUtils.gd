@@ -129,14 +129,14 @@ static func _line_move_and_collide(
 	if not data_bone.rigid_body:
 		return LineCollisionData.make(false, true, original_from, original_to)
 
-	var sample_count = 15
+	var sample_count = 10
 
 	var has_collision = false
 	var safe_point_found = false
 	var safe_from = original_from
 	var safe_to = original_to
 
-	var length = original_from.distance_to(original_to)
+	var length = data_bone.length
 
 	for i in range(sample_count):
 		var query = PhysicsShapeQueryParameters3D.new()
@@ -148,10 +148,9 @@ static func _line_move_and_collide(
 		var temp_basis = Basis.looking_at(target_to - target_from, Vector3.UP)
 
 		target_transform.basis = Basis(temp_basis.x, -temp_basis.z, temp_basis.y)
-
-		var shape_offset = target_transform.basis * data_bone.rigid_body.get_child(0).transform.origin
-		target_transform.origin = target_from + shape_offset
-		# print(target_transform.basis.y * 0.5, " ", shape_offset)
+		# TODO: Check if collision shape offset is needed to be taken into account
+		var midpoint = (target_from + target_to) * 0.5
+		target_transform.origin = midpoint
 
 		query.transform = current_transform.interpolate_with(target_transform, float(i + 1) / sample_count)
 
@@ -178,7 +177,7 @@ static func _line_move_and_collide(
 			distance = result.point.distance_to(to)
 			normal = (to - result.point).normalized()
 
-		if distance < 0.0501:
+		if distance < 0.055:
 			var overshoot = 0.05 - distance
 			from = from + normal * overshoot
 			to = to + normal * overshoot

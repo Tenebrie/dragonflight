@@ -104,25 +104,20 @@ func resolve_ik(delta: float) -> void:
 
 	var debug_colors = [Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN, Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.PURPLE, Color.ORANGE, Color.PINK, Color.BROWN, Color.GRAY, Color.CYAN]
 
-	var iterations = 8
-	BiasResolver.resolve(skeleton, bones, delta, iterations, gravity)
+	var iterations = 4
+	# BiasResolver.resolve(skeleton, bones, delta, iterations, gravity)
+
+	# FabrikResolver.resolve(bones, source_pos, target_pos)
+	# FabrikResolver.reconnect_locked_bones(bones)
 
 	for i in range(iterations):
-		# FabrikResolver.resolve(bones, source_pos, target_pos)
 		FabrikResolver.resolve_with_collision(bones, source_pos, target_pos)
 
-		# if bone_debug:
-			# bone_debug.print_bones(bones, debug_colors[i])
-
-		if i < iterations / 2.0:
-			CollisionResolver.resolve_and_land(bones)
-		else:
-			CollisionResolver.resolve_and_land(bones)
+		CollisionResolver.resolve_and_land(bones)
 
 		bones[depth - 1].is_locked_origin = true
 
-		if i == 7:
-			FabrikResolver.reconnect_locked_bones(bones)
+		FabrikResolver.reconnect_locked_bones(bones)
 
 		for bone in bones:
 			bone.is_locked_origin = false
@@ -214,11 +209,13 @@ class FabrikResolver:
 		for i in range(from_index, to_index):
 			var bone = bones[i]
 
-			# bone.target = IKUtils.move_and_collide(bone.skeleton, bone.target, bone.target, target_pos).point
 			var desired_origin = _preserve_length(target_pos, bone.origin, bone.length)
 			var line_move_data = IKUtils.line_move_and_collide(bone.skeleton, bone.origin, bone.target, desired_origin, target_pos, bone, true)
 			bone.origin = _preserve_length(line_move_data.to, line_move_data.from, bone.length)
 			bone.target = line_move_data.to
+
+			# bone.target = target_pos
+			# bone.origin = _preserve_length(bone.target, bone.origin, bone.length)
 
 			target_pos = bone.origin
 
@@ -228,8 +225,13 @@ class FabrikResolver:
 
 			var desired_target = _preserve_length(source_pos, bone.target, bone.length)
 			var line_move_data = IKUtils.line_move_and_collide(bone.skeleton, bone.origin, bone.target, source_pos, desired_target, bone, true)
+			# if i == 0:
+				# print(line_move_data.from, source_pos, _preserve_length(line_move_data.from, line_move_data.to, bone.length), _preserve_length(source_pos, bone.target, bone.length))
 			bone.origin = line_move_data.from
 			bone.target = _preserve_length(line_move_data.from, line_move_data.to, bone.length)
+
+			# bone.origin = source_pos
+			# bone.target = _preserve_length(bone.origin, bone.target, bone.length)
 
 			source_pos = bone.target
 
