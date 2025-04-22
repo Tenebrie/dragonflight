@@ -110,12 +110,15 @@ func resolve_ik(delta: float) -> void:
 	# FabrikResolver.reconnect_locked_bones(bones)
 
 	var tip_bone = bones[0]
-	var dist_to_target = min(0.2, tip_bone.target.distance_to(target_pos))
+	var full_dist_to_target = tip_bone.target.distance_to(target_pos)
+	var dist_to_target = min(0.3, full_dist_to_target)
 	var desired_target_pos = tip_bone.target + (target_pos - tip_bone.target).normalized() * dist_to_target
 	var iteration_target_pos = desired_target_pos
 	iteration_target_pos = raycast_collide(tip_bone.target, iteration_target_pos).point
 
-	BiasResolver.resolve_gravity(skeleton, bones, delta, iterations, gravity, stiffness)
+	var tension = min(full_dist_to_target, 3) / 3
+
+	BiasResolver.resolve_gravity(skeleton, bones, delta, gravity, 1 - tension)
 
 	for i in range(iterations):
 		var push_strength = (iterations - i) / float(iterations)
@@ -144,7 +147,7 @@ func find_root_bone(tip_bone_idx: int) -> int:
 	var root_bone = tip_bone_idx
 	for i in range(depth - 1):
 		var parent = skeleton.get_bone_parent(root_bone)
-		root_bone = parent
+		root_bone = parent	
 	return root_bone
 
 func apply_root_rotation(_bones: Array[IKBone3D]):
@@ -273,8 +276,8 @@ class FabrikResolver:
 		return target
 
 class BiasResolver:
-	static func resolve_gravity(skeleton: Skeleton3D, bones: Array[IKBone3D], _delta: float, iterations: int, gravity: float, stiffness: float) -> void:
-		var gravity_this_iteration = 9.8 * gravity
+	static func resolve_gravity(skeleton: Skeleton3D, bones: Array[IKBone3D], _delta: float, gravity: float, tension: float) -> void:
+		var gravity_this_iteration = 9.8 * gravity * tension
 		var gravity_vector = (skeleton.global_transform.inverse().basis * Vector3.DOWN).normalized()
 		for i in range(bones.size()):
 			var bone = bones[i]
